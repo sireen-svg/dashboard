@@ -9,7 +9,7 @@ import { toBackendFieldType } from '../lib/utils';
 import { showToast } from '../components/Toast';
 
 const MODULE_INFO = {
-  'e-commerce': {
+  'ecommerce': {
     icon: 'bi-cart3',
     color: '#1a73e8',
     bg: '#e8f0fe',

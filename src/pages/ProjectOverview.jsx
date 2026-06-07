@@ -58,6 +58,43 @@ export default function ProjectOverview() {
       bg: '#fef7e0',
       color: '#f9ab00',
     }] : []),
+    ...(modules.includes('ecommerce') ? [
+      {
+        to: `/projects/${project.slug}/entries?type=${encodeURIComponent(
+          (dataTypes.find((dt) => dt.slug === 'products')
+            || dataTypes.find((dt) => /product/i.test(dt.slug) || /product/i.test(dt.name || '')))?.slug || 'products'
+        )}`,
+        icon: 'bi-box-seam',
+        title: 'Products',
+        desc: 'Product catalog (CMS entries)',
+        bg: '#e8f0fe',
+        color: '#1a73e8',
+      },
+      {
+        to: `/projects/${project.slug}/commerce/offers`,
+        icon: 'bi-tag',
+        title: 'Offers',
+        desc: 'Discounts and coupon codes',
+        bg: '#fce8e6',
+        color: '#ea4335',
+      },
+      {
+        to: `/projects/${project.slug}/commerce/orders`,
+        icon: 'bi-bag-check',
+        title: 'Orders',
+        desc: 'Customer orders and fulfillment',
+        bg: '#e6f4ea',
+        color: '#34a853',
+      },
+      {
+        to: `/projects/${project.slug}/commerce/analytics`,
+        icon: 'bi-graph-up',
+        title: 'Commerce Analytics',
+        desc: 'Sales, products, customers, returns',
+        bg: '#f3e8fd',
+        color: '#ab47bc',
+      },
+    ] : []),
     {
       to: `/projects/${project.slug}/settings`,
       icon: 'bi-gear',

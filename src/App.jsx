@@ -20,6 +20,11 @@ import CollectionList from './pages/CollectionList';
 import CollectionDetail from './pages/CollectionDetail';
 import BookingResourceList from './pages/BookingResourceList';
 import BookingResourceDetail from './pages/BookingResourceDetail';
+import OfferList from './pages/OfferList';
+import OrderList from './pages/OrderList';
+import OrderDetail from './pages/OrderDetail';
+import ReturnList from './pages/ReturnList';
+import EcommerceAnalytics from './pages/EcommerceAnalytics';
 import RegisterPage from './pages/RegisterPage';
 import UserManagement from './pages/UserManagement';
 import RolesPermissions from './pages/RolesPermissions';
@@ -88,6 +93,11 @@ function AppRoutes() {
           <Route path="collections/:collectionSlug" element={<CollectionDetail />} />
           <Route path="booking/resources" element={<BookingResourceList />} />
           <Route path="booking/resources/:resourceId" element={<BookingResourceDetail />} />
+          <Route path="commerce/offers" element={<OfferList />} />
+          <Route path="commerce/orders" element={<OrderList />} />
+          <Route path="commerce/orders/:orderId" element={<OrderDetail />} />
+          <Route path="commerce/returns" element={<ReturnList />} />
+          <Route path="commerce/analytics" element={<EcommerceAnalytics />} />
           <Route path="settings" element={<ProjectSettings />} />
         </Route>
 
