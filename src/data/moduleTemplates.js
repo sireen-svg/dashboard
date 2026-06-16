@@ -92,7 +92,7 @@ const cmsTemplates = () => [
 ];
 
 export const MODULE_TEMPLATES = {
-  'e-commerce': ecommerceTemplates,
+  'ecommerce': ecommerceTemplates,
   'cms': cmsTemplates,
 };
 

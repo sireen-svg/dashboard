@@ -58,20 +58,28 @@ function logError(label, error) {
 
 // CMS API client — talks to the CMS backend
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_CMS_API_URL || 'http://localhost:8001/api',
+  baseURL: import.meta.env.VITE_CMS_API_URL || 'http://localhost:8081/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
 // Auth API client — talks to the Auth Service
 const authClient = axios.create({
-  baseURL: import.meta.env.VITE_AUTH_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_AUTH_API_URL || 'http://localhost:8003/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
 // Booking API client — talks to the Booking Service.
 // Booking only accepts X-Project-Id (not X-Project-Key), so we send the public_id under that header.
 const bookingClient = axios.create({
-  baseURL: import.meta.env.VITE_BOOKING_API_URL || 'http://localhost:8002/api',
+  baseURL: import.meta.env.VITE_BOOKING_API_URL || 'http://localhost:8004/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// E-Commerce API client — talks to the E-Commerce Service.
+// Like Booking, its ResolveProject middleware only reads X-Project-Id, so we
+// send the project's public_id under that header.
+const ecommerceClient = axios.create({
+  baseURL: import.meta.env.VITE_ECOMMERCE_API_URL || 'http://localhost:8002/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -238,5 +246,68 @@ bookingClient.interceptors.response.use(
   }
 );
 
-export { authClient, bookingClient };
+// --- Interceptors for E-Commerce client ---
+// Mirrors the Booking interceptor: bearer token, project header (X-Project-Id),
+// and 401 refresh-and-retry.
+ecommerceClient.interceptors.request.use((config) => {
+  config._startTime = Date.now();
+  const token = localStorage.getItem('auth_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  const projectKey = localStorage.getItem('active_project_key');
+  if (projectKey) config.headers['X-Project-Id'] = projectKey;
+
+  logRequest('ECOMMERCE', config);
+  return config;
+});
+
+ecommerceClient.interceptors.response.use(
+  (res) => { logResponse('ECOMMERCE', res); return res; },
+  async (err) => {
+    logError('ECOMMERCE', err);
+    const originalRequest = err.config;
+
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return ecommerceClient(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) throw new Error('No refresh token');
+
+        const res = await authClient.post('/refresh', { refresh_token: refreshToken });
+        const newToken = res.data.access_token || res.data.refresh_token;
+
+        if (newToken) {
+          localStorage.setItem('auth_token', newToken);
+          processQueue(null, newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return ecommerceClient(originalRequest);
+        }
+        throw new Error('No token in refresh response');
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(err);
+  }
+);
+
+export { authClient, bookingClient, ecommerceClient };
 export default apiClient;

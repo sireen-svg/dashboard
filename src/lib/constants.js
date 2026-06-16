@@ -18,10 +18,10 @@ export const RELATION_KINDS = [
   'many-to-many',
 ];
 
-export const MODULE_KEYS = ['e-commerce', 'booking', 'cms'];
+export const MODULE_KEYS = ['ecommerce', 'booking', 'cms'];
 
 export const MODULE_LABELS = {
-  'e-commerce': 'E-commerce',
+  'ecommerce': 'E-commerce',
   'booking': 'Booking',
   'cms': 'CMS',
 };

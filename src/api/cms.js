@@ -12,9 +12,11 @@ export const checkProjectAccess = (userId) => apiClient.post('/check-project-acc
 export const getDataTypes = () => apiClient.get('/cms/data-types');
 export const getDataType = (slug) => apiClient.get(`/cms/data-types/${slug}`);
 export const createDataType = (data) => apiClient.post('/cms/data-types', data);
-export const updateDataType = (id, data) => apiClient.put(`/cms/data-types/${id}`, data);
-export const deleteDataType = (id) => apiClient.delete(`/cms/data-types/${id}`);
+// update/delete bind by slug on the backend (DataType::getRouteKeyName === 'slug')
+export const updateDataType = (slug, data) => apiClient.put(`/cms/data-types/${slug}`, data);
+export const deleteDataType = (slug) => apiClient.delete(`/cms/data-types/${slug}`);
 export const getTrashedDataTypes = () => apiClient.get('/cms/data-types/trashed');
+// restore/force-delete bind by id on the backend
 export const restoreDataType = (id) => apiClient.post(`/cms/data-types/${id}/restore`);
 export const forceDeleteDataType = (id) => apiClient.delete(`/cms/data-types/${id}/force-delete`);
 
@@ -33,10 +35,10 @@ export const getEntry = (slug) => apiClient.get(`/cms/entries/${slug}`);
 export const getEntryWithRelations = (slug) => apiClient.get(`/cms/entries/${slug}/with-relations`);
 // Same-type lookup — backend route is `/cms/entries/{entry:slug}/same-type`, requires an existing entry slug.
 export const getEntriesByType = (entrySlug, params) => apiClient.get(`/cms/entries/${entrySlug}/same-type`, { params });
-// Preferred list-by-data-type endpoint: `/cms/projects/{projectId}/data-types/{slug}/entries`.
-// Returns `{ data_type_slug, entries: [{id, status, values}], meta }`.
+// List-by-data-type endpoint. Backend route is `/projects/{project}/data-types/{slug}/entries`
+// (NOT under the /cms prefix). Returns `{ data_type_slug, entries: [{id, status, values}], meta }`.
 export const getEntriesByDataType = (projectId, dataTypeSlug, params) =>
-  apiClient.get(`/cms/projects/${projectId}/data-types/${dataTypeSlug}/entries`, { params });
+  apiClient.get(`/projects/${projectId}/data-types/${dataTypeSlug}/entries`, { params });
 // Bulk-fetch full entries by id (returns slug, dates, status, values).
 export const getEntriesBulk = (ids) => apiClient.post('/cms/entries/bulk', { ids });
 // Use the PATCH route — it's the only update route with the `resolve.project` middleware,

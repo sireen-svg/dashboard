@@ -279,7 +279,7 @@ export default function TableEditor() {
   async function handleDeleteTable() {
     setDeleting(true);
     try {
-      await deleteDataType(dataType.id);
+      await deleteDataType(dataType.slug);
       await refreshDataTypes();
       showToast(`Table "${dataType.name}" deleted`, 'info');
       navigate(`/projects/${projectSlug}/schema`);
