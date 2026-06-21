@@ -1,36 +1,52 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import Header from './components/layout/Header';
-import ProjectLayout from './components/layout/ProjectLayout';
-import ToastContainer from './components/Toast';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import NewProjectWizard from './pages/NewProjectWizard';
-import ProjectOverview from './pages/ProjectOverview';
-import SchemaBuilder from './pages/SchemaBuilder';
-import NewDataType from './pages/NewDataType';
-import TableEditor from './pages/TableEditor';
-import RelationshipBuilder from './pages/RelationshipBuilder';
-import ProjectSettings from './pages/ProjectSettings';
-import EntryList from './pages/EntryList';
-import EntryForm from './pages/EntryForm';
-import CollectionList from './pages/CollectionList';
-import CollectionDetail from './pages/CollectionDetail';
-import BookingResourceList from './pages/BookingResourceList';
-import BookingResourceDetail from './pages/BookingResourceDetail';
-import OfferList from './pages/OfferList';
-import OrderList from './pages/OrderList';
-import OrderDetail from './pages/OrderDetail';
-import ReturnList from './pages/ReturnList';
-import EcommerceAnalytics from './pages/EcommerceAnalytics';
-import RegisterPage from './pages/RegisterPage';
-import UserManagement from './pages/UserManagement';
-import RolesPermissions from './pages/RolesPermissions';
-import NotFoundPage from './pages/NotFoundPage';
-import { getProjects } from './api/cms';
-import { useAuth } from './context/AuthContext';
+import { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useParams,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Header from "./components/layout/Header";
+import ProjectLayout from "./components/layout/ProjectLayout";
+import ToastContainer from "./components/Toast";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import NewProjectWizard from "./pages/NewProjectWizard";
+import ProjectOverview from "./pages/ProjectOverview";
+import SchemaBuilder from "./pages/SchemaBuilder";
+import NewDataType from "./pages/NewDataType";
+import TableEditor from "./pages/TableEditor";
+import RelationshipBuilder from "./pages/RelationshipBuilder";
+import ProjectSettings from "./pages/ProjectSettings";
+import EntryList from "./pages/EntryList";
+import EntryForm from "./pages/EntryForm";
+import CollectionList from "./pages/CollectionList";
+import CollectionDetail from "./pages/CollectionDetail";
+import BookingResourceList from "./pages/BookingResourceList";
+import BookingResourceDetail from "./pages/BookingResourceDetail";
+import OfferList from "./pages/OfferList";
+import OrderList from "./pages/OrderList";
+import OrderDetail from "./pages/OrderDetail";
+import ReturnList from "./pages/ReturnList";
+import EcommerceAnalytics from "./pages/EcommerceAnalytics";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import AiConversationList from "./pages/AiConversationList";
+import AiChat from "./pages/AiChat";
+import RegisterPage from "./pages/RegisterPage";
+import UserManagement from "./pages/UserManagement";
+import RolesPermissions from "./pages/RolesPermissions";
+import NotFoundPage from "./pages/NotFoundPage";
+import { getProjects } from "./api/cms";
+import { useAuth } from "./context/AuthContext";
+
+// Redirect /ai-conversations/:id → /ai-chat/:id so old links still work.
+function RedirectToChat() {
+  const { id } = useParams();
+  return <Navigate to={`/ai-chat/${id}`} replace />;
+}
 
 function HeaderWithProjects() {
   const location = useLocation();
@@ -66,21 +82,87 @@ function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected routes */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute><DashboardPage /></ProtectedRoute>
-        } />
-        <Route path="/admin/users" element={
-          <ProtectedRoute><UserManagement /></ProtectedRoute>
-        } />
-        <Route path="/admin/roles" element={
-          <ProtectedRoute><RolesPermissions /></ProtectedRoute>
-        } />
-        <Route path="/projects/new" element={
-          <ProtectedRoute><NewProjectWizard /></ProtectedRoute>
-        } />
-        <Route path="/projects/:slug/*" element={
-          <ProtectedRoute><ProjectLayout /></ProtectedRoute>
-        }>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <AnalyticsDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-conversations"
+          element={
+            <ProtectedRoute>
+              <AiConversationList />
+            </ProtectedRoute>
+          }
+        />
+        {/* Legacy /ai-conversations/:id → redirect to chat */}
+        <Route
+          path="/ai-conversations/:id"
+          element={
+            <ProtectedRoute>
+              <RedirectToChat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-chat"
+          element={
+            <ProtectedRoute>
+              <AiChat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-chat/:id"
+          element={
+            <ProtectedRoute>
+              <AiChat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/roles"
+          element={
+            <ProtectedRoute>
+              <RolesPermissions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/new"
+          element={
+            <ProtectedRoute>
+              <NewProjectWizard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:slug/*"
+          element={
+            <ProtectedRoute>
+              <ProjectLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<ProjectOverview />} />
           <Route path="schema" element={<SchemaBuilder />} />
           <Route path="schema/new" element={<NewDataType />} />
@@ -90,9 +172,15 @@ function AppRoutes() {
           <Route path="entries/new" element={<EntryForm />} />
           <Route path="entries/:entrySlug" element={<EntryForm />} />
           <Route path="collections" element={<CollectionList />} />
-          <Route path="collections/:collectionSlug" element={<CollectionDetail />} />
+          <Route
+            path="collections/:collectionSlug"
+            element={<CollectionDetail />}
+          />
           <Route path="booking/resources" element={<BookingResourceList />} />
-          <Route path="booking/resources/:resourceId" element={<BookingResourceDetail />} />
+          <Route
+            path="booking/resources/:resourceId"
+            element={<BookingResourceDetail />}
+          />
           <Route path="commerce/offers" element={<OfferList />} />
           <Route path="commerce/orders" element={<OrderList />} />
           <Route path="commerce/orders/:orderId" element={<OrderDetail />} />

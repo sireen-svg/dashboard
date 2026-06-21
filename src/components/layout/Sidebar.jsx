@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Nav } from 'react-bootstrap';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { useState } from "react";
+import { Nav } from "react-bootstrap";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 // A collapsible, route-driven nav group (e.g. Booking, Commerce). Auto-expands
 // when the current route falls under `basePath`. Mirrors the Entries group styling.
@@ -20,7 +20,7 @@ function CollapsibleNavGroup({ label, icon, basePath, links }) {
     <Nav.Item>
       <button
         type="button"
-        className={`nav-link sidebar-group-toggle${isActive ? ' active' : ''}`}
+        className={`nav-link sidebar-group-toggle${isActive ? " active" : ""}`}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
@@ -36,9 +36,14 @@ function CollapsibleNavGroup({ label, icon, basePath, links }) {
               key={l.to}
               to={l.to}
               end
-              className={({ isActive: active }) => `nav-link${active ? ' active' : ''}`}
+              className={({ isActive: active }) =>
+                `nav-link${active ? " active" : ""}`
+              }
             >
-              <i className={`bi ${l.icon}`} style={{ marginRight: 8, fontSize: 13 }}></i>
+              <i
+                className={`bi ${l.icon}`}
+                style={{ marginRight: 8, fontSize: 13 }}
+              ></i>
               <span>{l.label}</span>
             </NavLink>
           ))}
@@ -48,9 +53,14 @@ function CollapsibleNavGroup({ label, icon, basePath, links }) {
   );
 }
 
-export default function Sidebar({ projectSlug, projectName, dataTypes = [], enabledModules = [] }) {
-  const bookingEnabled = enabledModules.includes('booking');
-  const ecommerceEnabled = enabledModules.includes('ecommerce');
+export default function Sidebar({
+  projectSlug,
+  projectName,
+  dataTypes = [],
+  enabledModules = [],
+}) {
+  const bookingEnabled = enabledModules.includes("booking");
+  const ecommerceEnabled = enabledModules.includes("ecommerce");
   const location = useLocation();
   const entriesBase = `/projects/${projectSlug}/entries`;
   const isOnEntries = location.pathname.startsWith(entriesBase);
@@ -65,37 +75,87 @@ export default function Sidebar({ projectSlug, projectName, dataTypes = [], enab
   }
 
   const buildLinks = [
-    { to: `/projects/${projectSlug}`, label: 'Overview', icon: 'bi-speedometer2' },
-    { to: `/projects/${projectSlug}/schema`, label: 'Schema Builder', icon: 'bi-table' },
-    { to: `/projects/${projectSlug}/relationships`, label: 'Relationships', icon: 'bi-diagram-3' },
+    {
+      to: `/projects/${projectSlug}`,
+      label: "Overview",
+      icon: "bi-speedometer2",
+    },
+    {
+      to: `/projects/${projectSlug}/schema`,
+      label: "Schema Builder",
+      icon: "bi-table",
+    },
+    {
+      to: `/projects/${projectSlug}/relationships`,
+      label: "Relationships",
+      icon: "bi-diagram-3",
+    },
   ];
 
   const trailingManageLinks = [
-    { to: `/projects/${projectSlug}/collections`, label: 'Collections', icon: 'bi-collection' },
-    { to: `/projects/${projectSlug}/settings`, label: 'Settings', icon: 'bi-gear' },
+    {
+      to: `/projects/${projectSlug}/collections`,
+      label: "Collections",
+      icon: "bi-collection",
+    },
+    // Analytics is a top-level route (not project-scoped in the URL) — it reads the
+    // active project straight from localStorage, same as the project selector does.
+    { to: `/analytics`, label: "Analytics", icon: "bi-graph-up" },
+    {
+      to: `/projects/${projectSlug}/settings`,
+      label: "Settings",
+      icon: "bi-gear",
+    },
   ];
 
   const bookingLinks = [
-    { to: `/projects/${projectSlug}/booking/resources`, label: 'Resources', icon: 'bi-calendar-check' },
+    {
+      to: `/projects/${projectSlug}/booking/resources`,
+      label: "Resources",
+      icon: "bi-calendar-check",
+    },
   ];
 
   // Products aren't a Commerce entity — they're CMS entries of the module's
   // "products" data type. Deep-link the Commerce group straight to those entries.
-  const productsType = dataTypes.find((dt) => dt.slug === 'products')
-    || dataTypes.find((dt) => /product/i.test(dt.slug) || /product/i.test(dt.name || ''));
-  const productsSlug = productsType?.slug || 'products';
+  const productsType =
+    dataTypes.find((dt) => dt.slug === "products") ||
+    dataTypes.find(
+      (dt) => /product/i.test(dt.slug) || /product/i.test(dt.name || ""),
+    );
+  const productsSlug = productsType?.slug || "products";
 
   const commerceLinks = [
-    { to: `/projects/${projectSlug}/entries?type=${encodeURIComponent(productsSlug)}`, label: 'Products', icon: 'bi-box-seam' },
-    { to: `/projects/${projectSlug}/commerce/offers`, label: 'Offers', icon: 'bi-tag' },
-    { to: `/projects/${projectSlug}/commerce/orders`, label: 'Orders', icon: 'bi-bag-check' },
-    { to: `/projects/${projectSlug}/commerce/returns`, label: 'Returns', icon: 'bi-arrow-return-left' },
-    { to: `/projects/${projectSlug}/commerce/analytics`, label: 'Analytics', icon: 'bi-graph-up' },
+    {
+      to: `/projects/${projectSlug}/entries?type=${encodeURIComponent(productsSlug)}`,
+      label: "Products",
+      icon: "bi-box-seam",
+    },
+    {
+      to: `/projects/${projectSlug}/commerce/offers`,
+      label: "Offers",
+      icon: "bi-tag",
+    },
+    {
+      to: `/projects/${projectSlug}/commerce/orders`,
+      label: "Orders",
+      icon: "bi-bag-check",
+    },
+    {
+      to: `/projects/${projectSlug}/commerce/returns`,
+      label: "Returns",
+      icon: "bi-arrow-return-left",
+    },
+    {
+      to: `/projects/${projectSlug}/commerce/analytics`,
+      label: "Analytics",
+      icon: "bi-graph-up",
+    },
   ];
 
   // Highlight a data-type child link based on the ?type= query string when on the list page.
   const params = new URLSearchParams(location.search);
-  const activeType = params.get('type');
+  const activeType = params.get("type");
 
   return (
     <nav className="app-sidebar">
@@ -106,9 +166,7 @@ export default function Sidebar({ projectSlug, projectName, dataTypes = [], enab
 
       <div className="sidebar-project-info">
         <div className="sidebar-project-name">{projectName}</div>
-        {projectSlug && (
-          <div className="sidebar-project-id">{projectSlug}</div>
-        )}
+        {projectSlug && <div className="sidebar-project-id">{projectSlug}</div>}
       </div>
 
       <div className="sidebar-section">Build</div>
@@ -130,7 +188,7 @@ export default function Sidebar({ projectSlug, projectName, dataTypes = [], enab
         <Nav.Item>
           <button
             type="button"
-            className={`nav-link sidebar-group-toggle${isOnEntries ? ' active' : ''}`}
+            className={`nav-link sidebar-group-toggle${isOnEntries ? " active" : ""}`}
             onClick={() => setEntriesOpen((v) => !v)}
             aria-expanded={entriesOpen}
           >
@@ -155,10 +213,16 @@ export default function Sidebar({ projectSlug, projectName, dataTypes = [], enab
                   <Link
                     key={dt.id}
                     to={to}
-                    className={`nav-link${isActive ? ' active' : ''}`}
+                    className={`nav-link${isActive ? " active" : ""}`}
                     title={dt.name}
                   >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {dt.name}
                     </span>
                   </Link>
