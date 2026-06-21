@@ -1,0 +1,346 @@
+/* ══════════════════════════════════════════════════════════
+   Search Administration — Module Styles
+   Scoped under .search-* classes so nothing bleeds into the
+   rest of the dashboard. Follows the Firebase Console design
+   system already defined in index.css (--fb-* tokens).
+   ══════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────
+   Sidebar — Search section gets a distinct cyan identity
+   so it reads instantly as a different domain from Build / Manage.
+   ────────────────────────────────────────────────────────── */
+
+/* The small pulsing dot before the "Search" section label */
+.sidebar-section-search {
+  padding: 20px 20px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-section-search::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00bcd4;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(0, 188, 212, 0.5);
+  animation: search-pulse 2.4s ease-in-out infinite;
+}
+@keyframes search-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 188, 212, 0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(0, 188, 212, 0); }
+}
+
+/* Cyan accent for nav items inside the search section */
+.search-nav .nav-link.active {
+  background: rgba(0, 188, 212, 0.1);
+  color: #ffffff;
+  border-left-color: #00bcd4;
+}
+.search-nav .nav-link.active i {
+  opacity: 1;
+  color: #00bcd4;
+}
+.search-nav .sidebar-group-toggle.active {
+  background: rgba(0, 188, 212, 0.08);
+  color: #ffffff;
+  border-left-color: #00bcd4;
+}
+.search-nav .sidebar-group-toggle.active i {
+  opacity: 1;
+  color: #00bcd4;
+}
+.search-nav .sidebar-subnav .nav-link.active {
+  background: rgba(0, 188, 212, 0.12);
+  color: #00bcd4;
+}
+/* Dev-tools sub-group gets an amber tint to signal "internal" */
+.search-dev-nav .nav-link.active {
+  background: rgba(251, 188, 4, 0.08);
+  border-left-color: #fbbc04;
+}
+.search-dev-nav .nav-link.active i {
+  color: #fbbc04;
+  opacity: 1;
+}
+.search-dev-nav .sidebar-group-toggle.active {
+  background: rgba(251, 188, 4, 0.06);
+  border-left-color: #fbbc04;
+}
+.search-dev-nav .sidebar-subnav .nav-link.active {
+  background: rgba(251, 188, 4, 0.1);
+  color: #fbbc04;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Stat cards — coloured top-border KPI style
+   ────────────────────────────────────────────────────────── */
+.search-stat-card {
+  border-top: 3px solid transparent;
+  transition: box-shadow var(--fb-transition), transform var(--fb-transition);
+}
+.search-stat-card:hover {
+  box-shadow: var(--fb-shadow-1);
+  transform: translateY(-1px);
+}
+.search-stat-card.accent-blue   { border-top-color: var(--fb-blue); }
+.search-stat-card.accent-green  { border-top-color: var(--fb-green); }
+.search-stat-card.accent-red    { border-top-color: var(--fb-red); }
+.search-stat-card.accent-orange { border-top-color: var(--fb-orange); }
+.search-stat-card.accent-cyan   { border-top-color: #00bcd4; }
+.search-stat-card.accent-purple { border-top-color: var(--fb-purple); }
+
+.search-stat-label {
+  font-size: 12px;
+  color: var(--fb-text-secondary);
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.search-stat-value {
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--fb-text-primary);
+  line-height: 1.1;
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+}
+.search-stat-hint {
+  font-size: 12px;
+  color: var(--fb-text-disabled);
+  margin-top: 4px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Intent badges — coloured pills matching existing palette
+   ────────────────────────────────────────────────────────── */
+.intent-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.intent-transactional { background: var(--fb-green-bg);  color: var(--fb-green); }
+.intent-informational { background: var(--fb-blue-light); color: var(--fb-blue); }
+.intent-service       { background: var(--fb-orange-bg);  color: var(--fb-orange); }
+.intent-unknown       { background: var(--fb-border-light); color: var(--fb-text-secondary); }
+
+/* ──────────────────────────────────────────────────────────
+   Pipeline trace — the Debug page signature component
+   ────────────────────────────────────────────────────────── */
+.pipeline-stage {
+  display: flex;
+  gap: 14px;
+  position: relative;
+}
+.pipeline-dot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30px;
+  flex-shrink: 0;
+}
+.pipeline-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  flex-shrink: 0;
+  font-size: 13px;
+  transition: box-shadow var(--fb-transition);
+}
+.pipeline-dot.ok     { border-color: var(--fb-green); color: var(--fb-green); }
+.pipeline-dot.empty  { border-color: var(--fb-red);   color: var(--fb-red); }
+.pipeline-dot.skip   { border-color: var(--fb-text-disabled); color: var(--fb-text-disabled); }
+.pipeline-connector  { width: 2px; flex: 1; background: var(--fb-border-light); min-height: 20px; margin: 2px 0; }
+
+.pipeline-body        { flex: 1; padding-bottom: 22px; }
+.pipeline-toggle      {
+  background: none; border: none; padding: 0; cursor: pointer;
+  width: 100%; text-align: left; font-family: inherit; color: inherit;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+}
+.pipeline-toggle:hover .pipeline-title { color: var(--fb-blue); }
+.pipeline-title       { font-weight: 500; font-size: 14px; line-height: 1.3; }
+.pipeline-status-tag  { font-size: 11px; font-weight: 600; margin-left: 8px; }
+.pipeline-status-tag.ok    { color: var(--fb-green); }
+.pipeline-status-tag.empty { color: var(--fb-red); }
+.pipeline-status-tag.skip  { color: var(--fb-text-disabled); }
+.pipeline-time        { font-size: 11.5px; color: var(--fb-text-disabled); font-family: 'Roboto Mono', monospace; white-space: nowrap; }
+.pipeline-summary     { font-size: 12.5px; color: var(--fb-text-secondary); margin-top: 3px; line-height: 1.4; }
+
+.pipeline-detail {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--fb-body-bg);
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+}
+.pipeline-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px 16px;
+}
+.pipeline-kv-label { font-size: 11px; color: var(--fb-text-disabled); margin-bottom: 2px; }
+.pipeline-kv-val   { font-size: 13px; font-weight: 500; font-family: 'Roboto Mono', monospace; word-break: break-word; }
+
+/* ──────────────────────────────────────────────────────────
+   Perf bar — quick summary strip at top of Debug result
+   ────────────────────────────────────────────────────────── */
+.search-perf-bar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: var(--fb-surface);
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  margin-bottom: 14px;
+}
+.search-perf-item { display: flex; flex-direction: column; gap: 2px; }
+.search-perf-label { font-size: 11px; color: var(--fb-text-disabled); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+.search-perf-value { font-size: 16px; font-weight: 500; font-family: 'Roboto Mono', monospace; color: var(--fb-text-primary); }
+
+/* ──────────────────────────────────────────────────────────
+   Bar chart (Popular Searches)
+   ────────────────────────────────────────────────────────── */
+.search-bar-label {
+  width: 140px;
+  font-size: 13px;
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fb-text-primary);
+}
+.search-bar-track {
+  flex: 1;
+  height: 22px;
+  background: var(--fb-border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.search-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--fb-blue) 0%, #00bcd4 100%);
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.search-bar-count {
+  width: 32px;
+  text-align: right;
+  font-size: 12px;
+  font-family: 'Roboto Mono', monospace;
+  color: var(--fb-text-secondary);
+  flex-shrink: 0;
+}
+.search-bar-trend {
+  width: 52px;
+  text-align: right;
+  font-size: 12px;
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Config key/value card
+   ────────────────────────────────────────────────────────── */
+.config-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fb-blue);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--fb-border-light);
+  font-size: 13px;
+}
+.config-row:last-child { border-bottom: none; }
+.config-key { color: var(--fb-text-secondary); font-family: 'Roboto Mono', monospace; font-size: 12px; }
+.config-val { font-family: 'Roboto Mono', monospace; font-weight: 500; }
+
+/* ──────────────────────────────────────────────────────────
+   Developer-only warning banner
+   ────────────────────────────────────────────────────────── */
+.dev-tools-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--fb-yellow-bg);
+  border: 1px solid var(--fb-yellow);
+  border-radius: var(--fb-radius);
+  font-size: 13px;
+  color: #865400;
+  margin-bottom: 20px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Enter animation — cards and rows fade-in on load
+   ────────────────────────────────────────────────────────── */
+@keyframes search-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.search-enter {
+  animation: search-fade-up 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.search-enter-1 { animation-delay: 40ms; }
+.search-enter-2 { animation-delay: 80ms; }
+.search-enter-3 { animation-delay: 120ms; }
+.search-enter-4 { animation-delay: 160ms; }
+.search-enter-5 { animation-delay: 200ms; }
+
+/* ──────────────────────────────────────────────────────────
+   Matched-results score bar
+   ────────────────────────────────────────────────────────── */
+.score-track {
+  height: 4px;
+  background: var(--fb-border-light);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.score-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--fb-blue) 0%, #00bcd4 100%);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Reduced motion — respect user preference
+   ────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .search-enter, .search-stat-card,
+  .search-bar-fill, .sidebar-section-search::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
