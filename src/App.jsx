@@ -41,6 +41,13 @@ import RolesPermissions from "./pages/RolesPermissions";
 import NotFoundPage from "./pages/NotFoundPage";
 import { getProjects } from "./api/cms";
 import { useAuth } from "./context/AuthContext";
+import PopularSearchesPage from "./pages/search/PopularSearchesPage";
+import SearchLogsPage from "./pages/search/SearchLogsPage";
+import SearchProblemsPage from "./pages/search/SearchProblemsPage";
+import SearchDebugPage from "./pages/search/SearchDebugPage";
+import SearchConfigPage from "./pages/search/SearchConfigPage";
+import SearchComparePage from "./pages/search/SearchComparePage";
+import SearchAiRerunPage from "./pages/search/SearchAiRerunPage";
 
 // Redirect /ai-conversations/:id → /ai-chat/:id so old links still work.
 function RedirectToChat() {
@@ -186,6 +193,15 @@ function AppRoutes() {
           <Route path="commerce/orders/:orderId" element={<OrderDetail />} />
           <Route path="commerce/returns" element={<ReturnList />} />
           <Route path="commerce/analytics" element={<EcommerceAnalytics />} />
+          {/* شغل بشارة */}
+          <Route path="search/popular" element={<PopularSearchesPage />} />
+          <Route path="search/logs" element={<SearchLogsPage />} />
+          <Route path="search/problems" element={<SearchProblemsPage />} />
+          <Route path="search/debug" element={<SearchDebugPage />} />
+          <Route path="search/config" element={<SearchConfigPage />} />
+          <Route path="search/compare" element={<SearchComparePage />} />
+          <Route path="search/ai-rerun" element={<SearchAiRerunPage />} />
+          {/* ********** */}
           <Route path="settings" element={<ProjectSettings />} />
         </Route>
 

@@ -153,6 +153,20 @@ export default function Sidebar({
     },
   ];
 
+  // Search — always visible, not gated behind any module flag.
+  const searchLinks = [
+    { to: `/projects/${projectSlug}/search/popular`,  label: 'Popular searches', icon: 'bi-fire' },
+    { to: `/projects/${projectSlug}/search/logs`,     label: 'Search logs',      icon: 'bi-list-ul' },
+    { to: `/projects/${projectSlug}/search/problems`, label: 'Problems',         icon: 'bi-exclamation-triangle' },
+    { to: `/projects/${projectSlug}/search/debug`,    label: 'Debug query',      icon: 'bi-bug' },
+  ];
+
+  const searchDevLinks = [
+    { to: `/projects/${projectSlug}/search/config`,   label: 'Config',     icon: 'bi-sliders' },
+    { to: `/projects/${projectSlug}/search/compare`,  label: 'A/B compare', icon: 'bi-layout-split' },
+    { to: `/projects/${projectSlug}/search/ai-rerun`, label: 'AI re-run',  icon: 'bi-cpu' },
+  ];
+
   // Highlight a data-type child link based on the ?type= query string when on the list page.
   const params = new URLSearchParams(location.search);
   const activeType = params.get("type");
@@ -240,6 +254,26 @@ export default function Sidebar({
             </Nav.Link>
           </Nav.Item>
         ))}
+      </Nav>
+
+      {/* Search — permanent section, always rendered for every project. */}
+      <div className="sidebar-divider"></div>
+      <div className="sidebar-section-search">Search</div>
+      <Nav className="flex-column search-nav">
+        <CollapsibleNavGroup
+          label="Search admin"
+          icon="bi-search"
+          basePath={`/projects/${projectSlug}/search`}
+          links={searchLinks}
+        />
+      </Nav>
+      <Nav className="flex-column search-dev-nav">
+        <CollapsibleNavGroup
+          label="Dev tools"
+          icon="bi-terminal"
+          basePath={`/projects/${projectSlug}/search/config`}
+          links={searchDevLinks}
+        />
       </Nav>
 
       {/* Module sections — each enabled module is a collapsible group. */}
