@@ -40,9 +40,9 @@ export default function ProjectLayout() {
       const withFields = await Promise.all(
         list.map(async (dt) => {
           if (Array.isArray(dt.fields) && dt.fields.length > 0) return dt;
-          if (!dt?.id) return { ...dt, fields: dt.fields || [] };
+          if (!dt?.slug) return { ...dt, fields: dt.fields || [] };
           try {
-            const fieldsRes = await getFields(dt.id);
+            const fieldsRes = await getFields(dt.slug);
             const fields = fieldsRes.data?.data || fieldsRes.data || [];
             return { ...dt, fields };
           } catch {

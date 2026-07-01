@@ -31,7 +31,7 @@ export default function RelationshipBuilder() {
     try {
       const results = await Promise.all(
         dataTypes.map(async (dt) => {
-          const res = await getFields(dt.id);
+          const res = await getFields(dt.slug);
           return { dtId: dt.id, fields: res.data?.data || res.data || [] };
         })
       );

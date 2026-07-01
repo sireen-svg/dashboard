@@ -25,9 +25,12 @@ import {
   getEntriesBulk,
   deactivateCollection,
   updateCollection,
+  getFields,
 } from '../api/cms';
 import { showToast } from '../components/Toast';
 import { getApiError } from '../lib/utils';
+import ConditionsBuilder from '../components/ConditionsBuilder';
+import { cleanConditions } from '../lib/collectionConditions';
 
 function SortableItem({ entry, onRemove }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -73,6 +76,10 @@ export default function CollectionDetail() {
   const [selectedEntries, setSelectedEntries] = useState([]);
   const [adding, setAdding] = useState(false);
   const [togglingActive, setTogglingActive] = useState(false);
+  const [fields, setFields] = useState([]);
+  const [conditions, setConditions] = useState([]);
+  const [conditionsLogic, setConditionsLogic] = useState('and');
+  const [savingConditions, setSavingConditions] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -104,7 +111,24 @@ export default function CollectionDetail() {
         getCollection(collectionSlug),
         getCollectionEntries(collectionSlug),
       ]);
-      setCollection(colRes.data?.data || colRes.data);
+      const col = colRes.data?.data || colRes.data;
+      setCollection(col);
+      // Seed the dynamic-conditions editor and load the data type's fields from the loaded collection.
+      setConditions(Array.isArray(col?.conditions) ? col.conditions : []);
+      setConditionsLogic(col?.conditions_logic || 'and');
+      if (col?.type === 'dynamic') {
+        const dt = dataTypes.find((d) => d.id === Number(col.data_type_id));
+        if (dt?.slug) {
+          try {
+            const fres = await getFields(dt.slug);
+            setFields(fres.data?.data || fres.data || []);
+          } catch {
+            setFields([]);
+          }
+        }
+      } else {
+        setFields([]);
+      }
       const rawItems = itemsRes.data?.data || itemsRes.data || [];
       // getCollectionEntries returns minimal { id, price } shape — hydrate slugs/statuses for display.
       const ids = rawItems.map((i) => i.id).filter(Boolean);
@@ -134,11 +158,29 @@ export default function CollectionDetail() {
     } finally {
       setLoading(false);
     }
-  }, [collectionSlug, projectSlug, navigate]);
+  }, [collectionSlug, projectSlug, navigate, dataTypes]);
 
   useEffect(() => {
     loadCollection();
   }, [loadCollection]);
+
+  async function handleSaveConditions() {
+    if (savingConditions) return;
+    setSavingConditions(true);
+    try {
+      // Updating a dynamic collection deletes and regenerates its items from these conditions.
+      await updateCollection(collectionSlug, {
+        conditions: cleanConditions(conditions),
+        conditions_logic: conditionsLogic,
+      });
+      showToast('Conditions saved — items regenerated', 'success');
+      await loadCollection();
+    } catch (err) {
+      showToast(getApiError(err), 'error');
+    } finally {
+      setSavingConditions(false);
+    }
+  }
 
   async function handleRemove(entryId) {
     try {
@@ -159,10 +201,21 @@ export default function CollectionDetail() {
     const reordered = arrayMove(items, oldIndex, newIndex);
     setItems(reordered);
 
+    // The reorder endpoint keys items by the data_collection_items PIVOT id, not the entry id.
+    // getCollectionEntries only exposes entry ids, but the collection `show` payload
+    // (getCollection → collection.items[]) carries both the pivot `id` and `item_id` (entry id),
+    // so build an entry-id → pivot-id lookup from it. Numeric-coerced to avoid string/number key misses.
+    const pivotIdByEntryId = new Map(
+      (collection?.items || []).map((it) => [Number(it.item_id), it.id])
+    );
+
     try {
       await reorderCollectionItems(
         collectionSlug,
-        reordered.map((item, i) => ({ id: item.id, sort_order: i }))
+        reordered.map((item, i) => ({
+          item_id: pivotIdByEntryId.get(Number(item.id)) ?? item.id,
+          sort_order: i + 1,
+        }))
       );
     } catch (err) {
       showToast(getApiError(err), 'error');
@@ -277,6 +330,33 @@ export default function CollectionDetail() {
           )}
         </div>
       </div>
+
+      {/* Conditions (dynamic collections only) */}
+      {collection.type === 'dynamic' && (
+        <Card className="mb-3">
+          <Card.Body className="p-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h6 className="fw-medium mb-0" style={{ fontSize: 14 }}>Conditions</h6>
+              <Button size="sm" onClick={handleSaveConditions} disabled={savingConditions}>
+                {savingConditions ? <Spinner size="sm" animation="border" /> : 'Save & regenerate'}
+              </Button>
+            </div>
+            <ConditionsBuilder
+              fields={fields}
+              conditions={conditions}
+              logic={conditionsLogic}
+              onChange={({ conditions: c, conditions_logic }) => {
+                setConditions(c);
+                setConditionsLogic(conditions_logic);
+              }}
+              disabled={savingConditions}
+            />
+            <div className="text-muted mt-2" style={{ fontSize: 12 }}>
+              Saving deletes and rebuilds this collection&apos;s items from the conditions above.
+            </div>
+          </Card.Body>
+        </Card>
+      )}
 
       {/* Items */}
       {items.length === 0 ? (

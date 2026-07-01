@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { Card, Button, Badge, Spinner, Modal, Form, Row, Col } from 'react-bootstrap';
-import { getCollections, createCollection, deleteCollection } from '../api/cms';
+import { getCollections, createCollection, deleteCollection, getFields } from '../api/cms';
 import { showToast } from '../components/Toast';
 import { getApiError, slugify } from '../lib/utils';
+import ConditionsBuilder from '../components/ConditionsBuilder';
+import { cleanConditions } from '../lib/collectionConditions';
 
 export default function CollectionList() {
   const { project, dataTypes } = useOutletContext();
@@ -20,11 +22,38 @@ export default function CollectionList() {
     type: 'manual',
     data_type_id: '',
     description: '',
+    conditions_logic: 'and',
   });
+  const [conditions, setConditions] = useState([]);
+  const [fields, setFields] = useState([]);
+  const [loadingFields, setLoadingFields] = useState(false);
 
   useEffect(() => {
     loadCollections();
   }, []);
+
+  // Load the selected data type's fields so dynamic-collection conditions can reference them by name.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadFields() {
+      const dt = dataTypes.find((d) => d.id === Number(form.data_type_id));
+      if (!form.data_type_id || !dt?.slug) {
+        setFields([]);
+        return;
+      }
+      setLoadingFields(true);
+      try {
+        const res = await getFields(dt.slug);
+        if (!cancelled) setFields(res.data?.data || res.data || []);
+      } catch {
+        if (!cancelled) setFields([]);
+      } finally {
+        if (!cancelled) setLoadingFields(false);
+      }
+    }
+    loadFields();
+    return () => { cancelled = true; };
+  }, [form.data_type_id, dataTypes]);
 
   async function loadCollections() {
     try {
@@ -43,16 +72,22 @@ export default function CollectionList() {
 
     setSaving(true);
     try {
-      await createCollection({
+      const payload = {
         name: form.name.trim(),
         slug: slugify(form.name),
         type: form.type,
         data_type_id: Number(form.data_type_id),
         description: form.description,
         is_active: true,
-      });
+      };
+      if (form.type === 'dynamic') {
+        payload.conditions = cleanConditions(conditions);
+        payload.conditions_logic = form.conditions_logic;
+      }
+      await createCollection(payload);
       showToast('Collection created', 'success');
-      setForm({ name: '', type: 'manual', data_type_id: '', description: '' });
+      setForm({ name: '', type: 'manual', data_type_id: '', description: '', conditions_logic: 'and' });
+      setConditions([]);
       setShowForm(false);
       loadCollections();
     } catch (err) {
@@ -221,6 +256,27 @@ export default function CollectionList() {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
               </Form.Group>
+
+              {form.type === 'dynamic' && (
+                <div className="mt-3">
+                  <Form.Label>Conditions</Form.Label>
+                  {!form.data_type_id ? (
+                    <div className="text-muted" style={{ fontSize: 13 }}>Select a data type first.</div>
+                  ) : loadingFields ? (
+                    <Spinner size="sm" animation="border" />
+                  ) : (
+                    <ConditionsBuilder
+                      fields={fields}
+                      conditions={conditions}
+                      logic={form.conditions_logic}
+                      onChange={({ conditions: c, conditions_logic }) => {
+                        setConditions(c);
+                        setForm((f) => ({ ...f, conditions_logic }));
+                      }}
+                    />
+                  )}
+                </div>
+              )}
             </Form>
           </Card.Body>
         </Card>

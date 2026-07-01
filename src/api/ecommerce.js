@@ -16,7 +16,7 @@ export const deleteOffer = (collectionSlug) => ecommerceClient.delete(`/ecommerc
 export const activateOffer = (collectionSlug) => ecommerceClient.post(`/ecommerce/offers/${collectionSlug}/activate`, { is_active: true });
 export const deactivateOffer = (collectionSlug) => ecommerceClient.post(`/ecommerce/offers/${collectionSlug}/deactivate`, { is_active: false });
 export const addOfferItems = (collectionSlug, items) => ecommerceClient.post(`/ecommerce/offers/${collectionSlug}/insert`, { items });
-export const removeOfferItems = (collectionSlug, itemIds) => ecommerceClient.delete(`/ecommerce/offers/${collectionSlug}/items`, { data: { item_ids: itemIds } });
+export const removeOfferItems = (collectionSlug, itemIds) => ecommerceClient.delete(`/ecommerce/offers/${collectionSlug}/items`, { data: { items: itemIds } });
 
 // -------------------------
 // Products (CMS entries enriched with pricing) — useful for offer item pickers
@@ -40,9 +40,9 @@ export const updateReturnRequest = (id, status) => ecommerceClient.patch(`/ecomm
 // -------------------------
 // Analytics
 // -------------------------
-export const getSalesSummary = (params = {}) => ecommerceClient.get('/ecommerce/analytics/sales', { params });
-export const getSalesTrend = (params = {}) => ecommerceClient.get('/ecommerce/analytics/sales/trend', { params });
-export const getTopProducts = (params = {}) => ecommerceClient.get('/ecommerce/analytics/products/top', { params });
-export const getOffersAnalytics = (params = {}) => ecommerceClient.get('/ecommerce/analytics/offers', { params });
-export const getTopCustomers = (params = {}) => ecommerceClient.get('/ecommerce/analytics/customers/top', { params });
-export const getReturnsAnalytics = (params = {}) => ecommerceClient.get('/ecommerce/analytics/returns', { params });
+// The backend exposes ONE aggregator endpoint — there are no per-report routes.
+// GET /ecommerce/analytics/summary returns (EcommerceAnalyticsController::summary):
+//   { success, data: { sales, 'sales-trend', 'top-products', offers, 'top-customers', returns } }
+// Fetch once and read the section you need.
+export const getAnalyticsSummary = (params = {}) =>
+  ecommerceClient.get('/ecommerce/analytics/summary', { params });

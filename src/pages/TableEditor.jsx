@@ -129,7 +129,7 @@ export default function TableEditor() {
       const dt = res.data?.data || res.data;
       setDataType(dt);
 
-      const fieldsRes = await getFields(dt.id || typeId);
+      const fieldsRes = await getFields(dt.slug || typeId);
       setFields(fieldsRes.data?.data || fieldsRes.data || []);
     } catch (err) {
       if (err.response?.status === 404) {
@@ -235,7 +235,7 @@ export default function TableEditor() {
     setShowTrash(true);
     setLoadingTrashedFields(true);
     try {
-      const res = await getTrashedFields(dataType.id);
+      const res = await getTrashedFields(dataType.slug);
       setTrashedFields(res.data?.data || res.data || []);
     } catch (err) {
       showToast(getApiError(err), 'error');

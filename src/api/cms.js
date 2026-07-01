@@ -28,15 +28,17 @@ export const forceDeleteDataType = (id) =>
   apiClient.delete(`/cms/data-types/${id}/force-delete`);
 
 // --- Fields ---
-export const getFields = (dataTypeId) =>
-  apiClient.get(`/cms/data-types/${dataTypeId}/fields`);
+// index/trashed bind {dataType} by slug on the backend (DataType::getRouteKeyName === 'slug').
+export const getFields = (dataTypeSlug) =>
+  apiClient.get(`/cms/data-types/${dataTypeSlug}/fields`);
+// createField (store) binds {dataType} by id on the backend (int $dataType), so pass the id here.
 export const createField = (dataTypeId, data) =>
   apiClient.post(`/cms/data-types/${dataTypeId}/fields`, data);
 export const updateField = (fieldId, data) =>
   apiClient.put(`/fields/${fieldId}`, data);
 export const deleteField = (fieldId) => apiClient.delete(`/fields/${fieldId}`);
-export const getTrashedFields = (dataTypeId) =>
-  apiClient.get(`/cms/data-types/${dataTypeId}/fields/trashed`);
+export const getTrashedFields = (dataTypeSlug) =>
+  apiClient.get(`/cms/data-types/${dataTypeSlug}/fields/trashed`);
 export const restoreField = (fieldId) =>
   apiClient.post(`/cms/fields/${fieldId}/restore`);
 export const forceDeleteField = (fieldId) =>
@@ -64,9 +66,9 @@ export const getEntriesBulk = (ids) =>
 // so the X-Project-Key header actually gets resolved into a current project.
 // dataTypeSlug is accepted for call-site compatibility but the route doesn't need it.
 export const updateEntry = (_dataTypeSlug, entrySlug, data) =>
-  apiClient.patch(`/data-entries/${entrySlug}`, data);
+  apiClient.patch(`/cms/data-entries/${entrySlug}`, data);
 export const patchEntry = (_dataTypeSlug, entrySlug, data) =>
-  apiClient.patch(`/data-entries/${entrySlug}`, data);
+  apiClient.patch(`/cms/data-entries/${entrySlug}`, data);
 export const deleteEntry = (slug) => apiClient.delete(`/cms/entries/${slug}`);
 export const publishEntry = (slug) =>
   apiClient.post(`/cms/entries/${slug}/publish`);
@@ -75,7 +77,7 @@ export const publishEntry = (slug) =>
 export const getEntryVersions = (slug, params) =>
   apiClient.get(`/cms/entries/${slug}/versions`, { params });
 export const restoreVersion = (versionId) =>
-  apiClient.post(`/data-entries/versions/${versionId}/restore`);
+  apiClient.post(`/cms/data-entries/versions/${versionId}/restore`);
 
 // --- Collections ---
 export const getCollections = () => apiClient.get("/cms/collections");

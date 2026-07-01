@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, Navigate } from 'react-router-dom';
 import { Card, Button, Badge, Spinner, Modal, Form, Row, Col } from 'react-bootstrap';
 import { listOffers, createOffer, deleteOffer, activateOffer, deactivateOffer } from '../api/ecommerce';
+import { getFields } from '../api/cms';
+import ConditionsBuilder from '../components/ConditionsBuilder';
+import { cleanConditions } from '../lib/collectionConditions';
 import { showToast } from '../components/Toast';
 import { getApiError } from '../lib/utils';
 
@@ -47,11 +50,38 @@ export default function OfferList() {
     start_at: '',
     end_at: '',
     is_active: true,
+    conditions_logic: 'and',
   });
+  const [conditions, setConditions] = useState([]);
+  const [fields, setFields] = useState([]);
+  const [loadingFields, setLoadingFields] = useState(false);
 
   useEffect(() => {
     if (ecommerceEnabled) loadOffers();
   }, [ecommerceEnabled]);
+
+  // Load the selected data type's fields so dynamic-offer conditions can reference them by name.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadFields() {
+      const dt = dataTypes.find((d) => d.id === Number(form.data_type_id));
+      if (!form.data_type_id || !dt?.slug) {
+        setFields([]);
+        return;
+      }
+      setLoadingFields(true);
+      try {
+        const res = await getFields(dt.slug);
+        if (!cancelled) setFields(res.data?.data || res.data || []);
+      } catch {
+        if (!cancelled) setFields([]);
+      } finally {
+        if (!cancelled) setLoadingFields(false);
+      }
+    }
+    loadFields();
+    return () => { cancelled = true; };
+  }, [form.data_type_id, dataTypes]);
 
   async function loadOffers() {
     setLoading(true);
@@ -70,8 +100,9 @@ export default function OfferList() {
     setForm({
       name: '', type: 'manual', data_type_id: '', benefit_type: 'percentage',
       benefit_value: '', is_code_offer: false, offer_duration: '',
-      start_at: '', end_at: '', is_active: true,
+      start_at: '', end_at: '', is_active: true, conditions_logic: 'and',
     });
+    setConditions([]);
   }
 
   async function handleCreate(e) {
@@ -94,6 +125,10 @@ export default function OfferList() {
       benefit_config,
       is_active: form.is_active,
     };
+    if (form.type === 'dynamic') {
+      payload.conditions = cleanConditions(conditions);
+      payload.conditions_logic = form.conditions_logic;
+    }
     if (form.is_code_offer && form.offer_duration) payload.offer_duration = Number(form.offer_duration);
     if (form.start_at) payload.start_at = form.start_at;
     if (form.end_at) payload.end_at = form.end_at;
@@ -344,6 +379,31 @@ export default function OfferList() {
                   </Form.Group>
                 </Col>
               </Row>
+
+              {form.type === 'dynamic' && (
+                <div className="mt-3">
+                  <Form.Label>Conditions</Form.Label>
+                  {!form.data_type_id ? (
+                    <div className="text-muted" style={{ fontSize: 13 }}>Select a data type first.</div>
+                  ) : loadingFields ? (
+                    <Spinner size="sm" animation="border" />
+                  ) : (
+                    <ConditionsBuilder
+                      fields={fields}
+                      conditions={conditions}
+                      logic={form.conditions_logic}
+                      onChange={({ conditions: c, conditions_logic }) => {
+                        setConditions(c);
+                        setForm((f) => ({ ...f, conditions_logic }));
+                      }}
+                    />
+                  )}
+                  <div className="text-muted mt-1" style={{ fontSize: 12 }}>
+                    The discount applies to every product matching these conditions.
+                  </div>
+                </div>
+              )}
+
               <div className="d-flex gap-2 mt-3">
                 <Button
                   type="submit"
