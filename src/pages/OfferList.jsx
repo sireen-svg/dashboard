@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext, Navigate } from 'react-router-dom';
+import { useOutletContext, Navigate, Link } from 'react-router-dom';
 import { Card, Button, Badge, Spinner, Modal, Form, Row, Col } from 'react-bootstrap';
 import { listOffers, createOffer, deleteOffer, activateOffer, deactivateOffer } from '../api/ecommerce';
 import { getFields } from '../api/cms';
@@ -227,10 +227,23 @@ export default function OfferList() {
             return (
               <Card key={o.id || slug}>
                 <Card.Body className="p-3 d-flex justify-content-between align-items-center">
-                  <div>
-                    <div className="fw-medium" style={{ fontSize: 15, color: '#202124' }}>
-                      {o.name || o.collection?.name || slug || `Offer #${o.id}`}
-                    </div>
+                  <div style={{ minWidth: 0 }}>
+                    {/* Offers are addressed by their collection slug on the API,
+                        so an offer without one has no detail page to open. */}
+                    {slug ? (
+                      <Link
+                        to={`/projects/${projectSlug}/commerce/offers/${slug}`}
+                        className="fw-medium text-decoration-none d-inline-flex align-items-center gap-1"
+                        style={{ fontSize: 15, color: '#1a73e8' }}
+                      >
+                        {o.name || o.collection?.name || slug || `Offer #${o.id}`}
+                        <i className="bi bi-chevron-right" style={{ fontSize: 11 }}></i>
+                      </Link>
+                    ) : (
+                      <div className="fw-medium" style={{ fontSize: 15, color: '#202124' }}>
+                        {o.name || o.collection?.name || `Offer #${o.id}`}
+                      </div>
+                    )}
                     <div className="d-flex gap-2 mt-1 align-items-center flex-wrap">
                       <Badge bg="info">{BENEFIT_LABELS[o.benefit_type] || o.benefit_type || 'offer'}</Badge>
                       <Badge bg={active ? 'success' : 'secondary'}>{active ? 'active' : 'inactive'}</Badge>

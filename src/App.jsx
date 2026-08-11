@@ -28,6 +28,8 @@ import CollectionDetail from "./pages/CollectionDetail";
 import BookingResourceList from "./pages/BookingResourceList";
 import BookingResourceDetail from "./pages/BookingResourceDetail";
 import OfferList from "./pages/OfferList";
+import OfferDetail from "./pages/OfferDetail";
+import ApiDocs from "./pages/ApiDocs";
 import OrderList from "./pages/OrderList";
 import OrderDetail from "./pages/OrderDetail";
 import ReturnList from "./pages/ReturnList";
@@ -189,6 +191,7 @@ function AppRoutes() {
             element={<BookingResourceDetail />}
           />
           <Route path="commerce/offers" element={<OfferList />} />
+          <Route path="commerce/offers/:collectionSlug" element={<OfferDetail />} />
           <Route path="commerce/orders" element={<OrderList />} />
           <Route path="commerce/orders/:orderId" element={<OrderDetail />} />
           <Route path="commerce/returns" element={<ReturnList />} />
@@ -202,6 +205,7 @@ function AppRoutes() {
           <Route path="search/compare" element={<SearchComparePage />} />
           <Route path="search/ai-rerun" element={<SearchAiRerunPage />} />
           {/* ********** */}
+          <Route path="api-docs" element={<ApiDocs />} />
           <Route path="settings" element={<ProjectSettings />} />
         </Route>
 

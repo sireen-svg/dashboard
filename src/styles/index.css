@@ -982,6 +982,14 @@ body {
 .schema-card:hover .schema-card-icon {
   transform: scale(1.05);
 }
+/* Skeleton placeholder shown while the data types are loading. Matches
+   .schema-card-icon's box so the real cards do not shift when they arrive. */
+.schema-skeleton-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--fb-radius);
+  flex-shrink: 0;
+}
 .schema-card .schema-card-name {
   font-weight: 500;
   font-size: 14px;
@@ -2847,4 +2855,155 @@ body {
   .ai-chat-layout {
     padding: 0 12px;
   }
+}
+
+/* ══════════════════════════════════════════════════════
+   API docs page
+   ══════════════════════════════════════════════════════ */
+
+.api-docs {
+  display: grid;
+  grid-template-columns: 208px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .api-docs { grid-template-columns: minmax(0, 1fr); }
+  .api-docs__nav { position: static !important; }
+}
+
+.api-docs__nav {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.api-docs__navitem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--fb-radius);
+  background: transparent;
+  color: var(--fb-text-secondary);
+  font-size: 13px;
+  text-align: left;
+  transition: var(--fb-transition);
+}
+.api-docs__navitem:hover { background: #f1f3f4; color: #202124; }
+
+.api-docs__picker {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid #e8eaed;
+  border-radius: var(--fb-radius);
+}
+
+.api-docs__section { margin-bottom: 32px; scroll-margin-top: 16px; }
+.api-docs__title { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+.api-docs__intro { font-size: 13px; color: var(--fb-text-secondary); margin-bottom: 14px; }
+
+/* --- one endpoint --- */
+.api-endpoint {
+  border: 1px solid #e8eaed;
+  border-radius: var(--fb-radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.api-endpoint__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.api-endpoint__head:hover { background: #f8f9fa; }
+.api-endpoint__method {
+  flex-shrink: 0;
+  min-width: 58px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+.api-endpoint__path {
+  font-size: 12.5px;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 42%;
+}
+.api-endpoint__summary {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--fb-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.api-endpoint__chev { font-size: 11px; color: #9aa0a6; flex-shrink: 0; }
+.api-endpoint__body { padding: 0 12px 12px; border-top: 1px solid #f1f3f4; }
+.api-endpoint__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #5f6368;
+  margin: 12px 0 4px;
+}
+.api-endpoint__notes {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--fb-text-secondary);
+}
+.api-endpoint__notes li { margin-bottom: 3px; }
+
+/* --- code block --- */
+.api-code {
+  border-radius: var(--fb-radius);
+  margin-top: 10px;
+  overflow: hidden;
+  border: 1px solid #e8eaed;
+}
+.api-code__bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.api-code__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.api-code__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: #9aa0a6;
+  font-size: 11.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.api-code__copy:hover { background: rgba(255, 255, 255, 0.12); color: #e8eaed; }
+.api-code pre {
+  margin: 0;
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.55;
 }

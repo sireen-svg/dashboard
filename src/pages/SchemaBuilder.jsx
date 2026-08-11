@@ -6,8 +6,14 @@ import { showToast } from '../components/Toast';
 import { getApiError } from '../lib/utils';
 
 export default function SchemaBuilder() {
-  const { project, dataTypes, refreshDataTypes } = useOutletContext();
+  const { project, dataTypes, dataTypesLoading, refreshDataTypes } = useOutletContext();
   const projectSlug = project.slug;
+
+  // First load has nothing to show yet, so use skeleton cards. A refresh
+  // (after restore / delete) keeps the current cards and shows a small
+  // spinner instead, so the grid does not flash away underneath you.
+  const showSkeleton = dataTypesLoading && dataTypes.length === 0;
+  const showRefreshing = dataTypesLoading && dataTypes.length > 0;
 
   const [showTrash, setShowTrash] = useState(false);
   const [trashed, setTrashed] = useState([]);
@@ -65,21 +71,58 @@ export default function SchemaBuilder() {
       <div className="page-header d-flex justify-content-between align-items-center">
         <div>
           <h2>Schema Builder</h2>
-          <p className="page-subtitle">
-            {dataTypes.length} table{dataTypes.length !== 1 ? 's' : ''} defined
+          <p className="page-subtitle d-flex align-items-center gap-2">
+            {showSkeleton ? (
+              'Loading tables…'
+            ) : (
+              <>
+                {dataTypes.length} table{dataTypes.length !== 1 ? 's' : ''} defined
+                {showRefreshing && (
+                  <>
+                    <Spinner animation="border" size="sm" variant="primary" />
+                    <span>Refreshing…</span>
+                  </>
+                )}
+              </>
+            )}
           </p>
         </div>
         <div className="d-flex gap-2">
-          <Button variant="outline-secondary" size="sm" onClick={openTrash}>
+          <Button variant="outline-secondary" size="sm" onClick={openTrash} disabled={showSkeleton}>
             <i className="bi bi-trash3 me-1"></i>Trash
           </Button>
-          <Button as={Link} to={`/projects/${projectSlug}/schema/new`} variant="primary" size="sm">
+          <Button
+            as={Link}
+            to={`/projects/${projectSlug}/schema/new`}
+            variant="primary"
+            size="sm"
+            className={showSkeleton ? 'disabled' : undefined}
+          >
             <i className="bi bi-plus-lg me-1"></i>Add table
           </Button>
         </div>
       </div>
 
-      {dataTypes.length === 0 ? (
+      {showSkeleton ? (
+        <Row xs={1} sm={2} md={3} className="g-3" aria-busy="true" aria-label="Loading tables">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Col key={i}>
+              <div className="card schema-card h-100">
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <div className="analytics-skeleton-line schema-skeleton-icon" />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="analytics-skeleton-line mb-1" style={{ height: 14, width: '60%' }} />
+                      <div className="analytics-skeleton-line" style={{ height: 11, width: '40%' }} />
+                    </div>
+                  </div>
+                  <div className="analytics-skeleton-line" style={{ height: 11, width: '30%' }} />
+                </div>
+              </div>
+            </Col>
+          ))}
+        </Row>
+      ) : dataTypes.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">
             <i className="bi bi-table"></i>
