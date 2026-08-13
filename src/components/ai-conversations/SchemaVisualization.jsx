@@ -199,7 +199,7 @@ function RelationsSection({ relations }) {
               <span
                 style={{ color: "var(--fb-header-bg)", fontWeight: "bold" }}
               >
-                {rel.settings?.related_data_type_name || "—"}
+                {rel.settings?.related_data_type_name || rel.label || "—"}
               </span>
             </div>
           </div>
