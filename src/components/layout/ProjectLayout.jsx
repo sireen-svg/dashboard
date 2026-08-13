@@ -11,26 +11,37 @@ export default function ProjectLayout() {
   const [project, setProject] = useState(null);
   const [dataTypes, setDataTypes] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Tracked separately from `loading`: the project is one quick request, while
+  // the data types need a list call plus one call per type, so it finishes much
+  // later. Without its own flag, consumers render an empty schema as if it were
+  // loaded.
+  const [dataTypesLoading, setDataTypesLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  // Returns true once `active_project_key` holds THIS project. Every CMS
+  // request is scoped by that key (the axios interceptor sends it as
+  // X-Project-Key), so nothing else may be fetched until it has been written.
   const loadProject = useCallback(async () => {
     try {
       const res = await getProject(slug);
       const proj = res.data?.data || res.data;
       setProject(proj);
       localStorage.setItem('active_project_key', proj.public_id);
+      return true;
     } catch (err) {
       if (err.response?.status === 404) {
         setNotFound(true);
       } else {
         showToast(getApiError(err), 'error');
       }
+      return false;
     } finally {
       setLoading(false);
     }
   }, [slug]);
 
   const loadDataTypes = useCallback(async () => {
+    setDataTypesLoading(true);
     try {
       const res = await getDataTypes();
       const list = res.data?.data || res.data || [];
@@ -40,9 +51,9 @@ export default function ProjectLayout() {
       const withFields = await Promise.all(
         list.map(async (dt) => {
           if (Array.isArray(dt.fields) && dt.fields.length > 0) return dt;
-          if (!dt?.id) return { ...dt, fields: dt.fields || [] };
+          if (!dt?.slug) return { ...dt, fields: dt.fields || [] };
           try {
-            const fieldsRes = await getFields(dt.id);
+            const fieldsRes = await getFields(dt.slug);
             const fields = fieldsRes.data?.data || fieldsRes.data || [];
             return { ...dt, fields };
           } catch {
@@ -53,14 +64,38 @@ export default function ProjectLayout() {
       setDataTypes(withFields);
     } catch {
       // Data types will be empty
+    } finally {
+      setDataTypesLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    setNotFound(false);
-    loadProject();
-    loadDataTypes();
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      setNotFound(false);
+      // Drop the previous project's types immediately. Keeping them around let
+      // you act on another project's ids - creating an entry from a stale list
+      // saved it with that project's data_type_id under this project's id.
+      setDataTypes([]);
+      setDataTypesLoading(true);
+
+      // Must be awaited: loadProject writes `active_project_key`, and every
+      // request loadDataTypes makes is scoped by that key. Running them
+      // concurrently fetched the PREVIOUS project's data types.
+      const ok = await loadProject();
+      if (cancelled) return;
+      if (!ok) {
+        setDataTypesLoading(false);
+        return;
+      }
+      await loadDataTypes();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadProject, loadDataTypes]);
 
   async function handleUpdateProject(data) {
@@ -108,6 +143,7 @@ export default function ProjectLayout() {
         <Outlet context={{
           project,
           dataTypes,
+          dataTypesLoading,
           onUpdateProject: handleUpdateProject,
           onDeleteProject: handleDeleteProject,
           refreshProject: loadProject,

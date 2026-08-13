@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext, Navigate } from 'react-router-dom';
 import { Card, Spinner, Row, Col, Table } from 'react-bootstrap';
-import {
-  getSalesSummary, getTopProducts, getTopCustomers, getReturnsAnalytics,
-} from '../api/ecommerce';
+import { getAnalyticsSummary } from '../api/ecommerce';
 
 function humanize(key) {
   return String(key).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -81,14 +79,16 @@ export default function EcommerceAnalytics() {
 
   async function loadAll() {
     setLoading(true);
-    // Each call is independent — don't let one failure blank the whole page.
-    const [s, p, c, r] = await Promise.allSettled([
-      getSalesSummary(), getTopProducts(), getTopCustomers(), getReturnsAnalytics(),
-    ]);
-    if (s.status === 'fulfilled') setSales(unwrap(s.value));
-    if (p.status === 'fulfilled') setProducts(unwrap(p.value));
-    if (c.status === 'fulfilled') setCustomers(unwrap(c.value));
-    if (r.status === 'fulfilled') setReturns(unwrap(r.value));
+    // The backend serves all reports from a single endpoint; fetch once and split the sections.
+    try {
+      const data = unwrap(await getAnalyticsSummary()) || {};
+      setSales(data.sales ?? null);
+      setProducts(data['top-products'] ?? null);
+      setCustomers(data['top-customers'] ?? null);
+      setReturns(data.returns ?? null);
+    } catch {
+      // Leave sections null; the page renders its empty states.
+    }
     setLoading(false);
   }
 

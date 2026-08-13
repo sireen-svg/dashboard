@@ -98,6 +98,11 @@ export default function Sidebar({
       label: "Collections",
       icon: "bi-collection",
     },
+    {
+      to: `/projects/${projectSlug}/api-docs`,
+      label: "API docs",
+      icon: "bi-code-slash",
+    },
     // Analytics is a top-level route (not project-scoped in the URL) — it reads the
     // active project straight from localStorage, same as the project selector does.
     { to: `/analytics`, label: "Analytics", icon: "bi-graph-up" },

@@ -75,9 +75,9 @@ export default function EntryForm() {
         // Backend's data-type show endpoint doesn't eager-load fields, so fetch them separately.
         let dtFields = dt?.fields;
         if (!Array.isArray(dtFields) || dtFields.length === 0) {
-          if (dt?.id) {
+          if (dt?.slug) {
             try {
-              const fieldsRes = await getFields(dt.id);
+              const fieldsRes = await getFields(dt.slug);
               dtFields = fieldsRes.data?.data || fieldsRes.data || [];
             } catch {
               dtFields = [];
@@ -446,7 +446,7 @@ export default function EntryForm() {
           // Laravel reads `_method` to treat a POST as PATCH — needed because PHP doesn't
           // populate $_FILES on real PATCH requests reliably.
           fd.append('_method', 'PATCH');
-          await apiClient.post(`/data-entries/${entrySlug}`, fd);
+          await apiClient.post(`/cms/data-entries/${entrySlug}`, fd);
           showToast('Entry updated', 'success');
         } else {
           await apiClient.post(`/cms/data-types/${typeSlug}/entries`, fd);
