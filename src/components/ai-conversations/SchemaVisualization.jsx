@@ -11,7 +11,6 @@ const RELATION_KIND_LABELS = {
   "many-to-many": "M : M",
 };
 
-// Reuses .review-summary / .review-label / .review-value from NewProjectWizard.jsx.
 function ProjectInfoSection({ info }) {
   if (!info || typeof info !== "object") return null;
   const entries = Object.entries(info).filter(
@@ -38,13 +37,13 @@ function ProjectInfoSection({ info }) {
   );
 }
 
-// Reuses the Badge-toggle visual language (just non-interactive badges here) and
-// MODULE_LABELS from lib/constants.js — same labels used across the rest of the app.
 function ModulesSection({ modules }) {
   if (!modules) return null;
   const keys = Array.isArray(modules)
     ? modules
-    : Object.keys(modules).filter((k) => modules[k]);
+    : typeof modules === "object"
+      ? Object.keys(modules).filter((k) => modules[k])
+      : [];
   if (keys.length === 0) return null;
   return (
     <div className="mb-3 d-flex flex-wrap gap-2">
@@ -58,11 +57,11 @@ function ModulesSection({ modules }) {
 }
 
 function LanguagesSection({ languages }) {
-  if (!languages || languages.length === 0) return null;
+  if (!Array.isArray(languages) || languages.length === 0) return null;
   return (
     <div className="mb-3 d-flex flex-wrap gap-2">
-      {languages.map((l) => (
-        <Badge key={l} bg="info">
+      {languages.map((l, i) => (
+        <Badge key={l ?? i} bg="info">
           {l}
         </Badge>
       ))}
@@ -70,9 +69,8 @@ function LanguagesSection({ languages }) {
   );
 }
 
-// Reuses .column-table / .field-badge exactly as defined for TableEditor.jsx.
 function FieldsTable({ fields }) {
-  if (!fields || fields.length === 0) {
+  if (!Array.isArray(fields) || fields.length === 0) {
     return (
       <div style={{ fontSize: 13, color: "#9aa0a6" }}>No fields defined.</div>
     );
@@ -92,10 +90,11 @@ function FieldsTable({ fields }) {
         </thead>
         <tbody>
           {fields.map((f, i) => {
+            if (!f) return null; // حماية ضد العناصر الفارغة
             const rules = f.validation_rules || f.rules || [];
             return (
               <tr key={f.id ?? f.name ?? i}>
-                <td className="fw-medium">{f.name}</td>
+                <td className="fw-medium">{f.name || "—"}</td>
                 <td>
                   <span className={`field-badge ${f.type || "string"}`}>
                     {f.type || "string"}
@@ -110,7 +109,7 @@ function FieldsTable({ fields }) {
                   )}
                 </td>
                 <td>
-                  {rules.length > 0 ? (
+                  {Array.isArray(rules) && rules.length > 0 ? (
                     <div className="d-flex flex-wrap gap-1">
                       {rules.map((r, ri) => (
                         <span
@@ -120,7 +119,7 @@ function FieldsTable({ fields }) {
                         >
                           {typeof r === "string"
                             ? r
-                            : r.rule || JSON.stringify(r)}
+                            : r?.rule || JSON.stringify(r)}
                         </span>
                       ))}
                     </div>
@@ -138,68 +137,74 @@ function FieldsTable({ fields }) {
 }
 
 function DataTypesSection({ dataTypes }) {
-  if (!dataTypes || dataTypes.length === 0) return null;
+  if (!Array.isArray(dataTypes) || dataTypes.length === 0) return null;
   return (
     <Accordion className="mb-3">
-      {dataTypes.map((dt, i) => (
-        <Accordion.Item
-          eventKey={String(i)}
-          key={dt.id ?? dt.slug ?? dt.name ?? i}
-        >
-          <Accordion.Header>
-            <span className="fw-medium">{dt.name}</span>
-            {dt.slug && (
-              <span
-                className="font-monospace ms-2"
-                style={{ fontSize: 12, color: "#9aa0a6" }}
-              >
-                {dt.slug}
+      {dataTypes.map((dt, i) => {
+        if (!dt) return null; // حماية ضد العناصر الفارغة
+        const fieldsCount = Array.isArray(dt.fields) ? dt.fields.length : 0;
+        return (
+          <Accordion.Item
+            eventKey={String(i)}
+            key={dt.id ?? dt.slug ?? dt.name ?? i}
+          >
+            <Accordion.Header>
+              <span className="fw-medium">{dt.name || "Untitled"}</span>
+              {dt.slug && (
+                <span
+                  className="font-monospace ms-2"
+                  style={{ fontSize: 12, color: "#9aa0a6" }}
+                >
+                  {dt.slug}
+                </span>
+              )}
+              <span className="ms-2" style={{ fontSize: 12, color: "#5f6368" }}>
+                · {fieldsCount} field{fieldsCount !== 1 ? "s" : ""}
               </span>
-            )}
-            <span className="ms-2" style={{ fontSize: 12, color: "#5f6368" }}>
-              · {(dt.fields || []).length} field
-              {(dt.fields || []).length !== 1 ? "s" : ""}
-            </span>
-          </Accordion.Header>
-          <Accordion.Body>
-            <FieldsTable fields={dt.fields} />
-          </Accordion.Body>
-        </Accordion.Item>
-      ))}
+            </Accordion.Header>
+            <Accordion.Body>
+              <FieldsTable fields={dt.fields} />
+            </Accordion.Body>
+          </Accordion.Item>
+        );
+      })}
     </Accordion>
   );
 }
 
-// Reuses .rel-card / .rel-arrow / .rel-badge / .rel-table-name exactly as defined
-// for RelationshipBuilder.jsx.
 function RelationsSection({ relations }) {
-  if (!relations || relations.length === 0) return null;
+  if (!Array.isArray(relations) || relations.length === 0) return null;
   return (
     <div className="d-flex flex-column gap-2 mb-3">
-      {relations.map((rel, i) => (
-        <div key={i} className="rel-card d-flex justify-content-between ">
-          <div className="rel-arrow">
-            <span className="rel-table-name">
-              {rel.source_data_type || rel.from || rel.source}
-            </span>
-            <span className="rel-badge">
-              {RELATION_KIND_LABELS[rel.kind || rel.type] ||
-                rel.kind ||
-                rel.type ||
-                "—"}
-            </span>
-            <span className="rel-table-name">
-              {rel.target_data_type || rel.to || rel.target}
-            </span>
+      {relations.map((rel, i) => {
+        if (!rel) return null; // حماية ضد العناصر الفارغة
+        return (
+          <div key={i} className="rel-card d-flex justify-content-between ">
+            <div className="rel-arrow">
+              <span className="rel-table-name">
+                {rel.source_data_type || rel.from || rel.source || "—"}
+              </span>
+              <span className="rel-badge">
+                {RELATION_KIND_LABELS[rel.kind || rel.type] ||
+                  rel.kind ||
+                  rel.type ||
+                  "—"}
+              </span>
+              <span className="rel-table-name">
+                {rel.target_data_type || rel.to || rel.target || "—"}
+              </span>
+            </div>
+            <div className="rel-fieldName">
+              <span className="bi rel-arrow-icon">field-name: </span>
+              <span
+                style={{ color: "var(--fb-header-bg)", fontWeight: "bold" }}
+              >
+                {rel.settings?.related_data_type_name || "—"}
+              </span>
+            </div>
           </div>
-          <div className="rel-fieldName">
-            <span className="bi rel-arrow-icon">field-name: </span>
-            <span style={{ color: "var(--fb-header-bg)" , fontWeight: "bold"}}>
-              {rel.settings.related_data_type_name}
-            </span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -207,7 +212,11 @@ function RelationsSection({ relations }) {
 function NativeModulesNotesSection({ notes }) {
   if (!notes) return null;
   const entries =
-    typeof notes === "string" ? [["notes", notes]] : Object.entries(notes);
+    typeof notes === "string"
+      ? [["notes", notes]]
+      : typeof notes === "object"
+        ? Object.entries(notes)
+        : [];
   if (entries.length === 0) return null;
   return (
     <Card className="mb-1">
@@ -232,15 +241,11 @@ function NativeModulesNotesSection({ notes }) {
   );
 }
 
-// Renders an AI-generated project schema (an assistant message's `schema` field)
-// without ever dumping raw JSON — every section reuses a visual pattern that
-// already exists elsewhere in the app instead of inventing a new one.
 export default function SchemaVisualization({ schema }) {
   const [expanded, setExpanded] = useState(true);
   if (!schema || typeof schema !== "object") return null;
 
-  const projectInfo =
-    schema.project_info || schema.project || schema.info;
+  const projectInfo = schema.project_info || schema.project || schema.info;
   const modules = schema.modules;
   const languages = schema.languages || schema.supported_languages;
   const dataTypes =
