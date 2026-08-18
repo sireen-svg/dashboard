@@ -1,4 +1,5 @@
 import { generateId } from '../lib/utils';
+import { clinicTypesAsWizardTables } from './clinicTemplates';
 
 function col(name, displayName, fieldType, opts = {}) {
   return {
@@ -96,9 +97,13 @@ export const MODULE_TEMPLATES = {
   'cms': cmsTemplates,
 };
 
-export function getTablesForModules(moduleKeys) {
+export function getTablesForModules(moduleKeys, preset = 'standard') {
   const tables = [];
   for (const key of moduleKeys) {
+    if (key === 'cms' && preset === 'clinic') {
+      tables.push(...clinicTypesAsWizardTables());
+      continue;
+    }
     const templateFn = MODULE_TEMPLATES[key];
     if (templateFn) {
       tables.push(...templateFn());

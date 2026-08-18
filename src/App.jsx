@@ -15,6 +15,7 @@ import ToastContainer from "./components/Toast";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import NewProjectWizard from "./pages/NewProjectWizard";
+import ClinicSetupPage from "./pages/ClinicSetupPage";
 import ProjectOverview from "./pages/ProjectOverview";
 import SchemaBuilder from "./pages/SchemaBuilder";
 import NewDataType from "./pages/NewDataType";
@@ -177,6 +178,7 @@ function AppRoutes() {
           <Route path="schema/new" element={<NewDataType />} />
           <Route path="schema/:typeId" element={<TableEditor />} />
           <Route path="relationships" element={<RelationshipBuilder />} />
+          <Route path="clinic-setup" element={<ClinicSetupPage />} />
           <Route path="entries" element={<EntryList />} />
           <Route path="entries/new" element={<EntryForm />} />
           <Route path="entries/:entrySlug" element={<EntryForm />} />

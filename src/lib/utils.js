@@ -14,7 +14,9 @@ export function slugify(text) {
 // Maps frontend field types to CMS backend field types
 const FRONTEND_TO_BACKEND = {
   string: "text",
-  text: "rich-text",
+  // HyperCore stores both single-line and multiline content as `text`.
+  // `rich-text` is an editor concern and is not a supported backend strategy.
+  text: "text",
   number: "number",
   boolean: "boolean",
   date: "date",
@@ -41,7 +43,19 @@ export function toBackendFieldType(frontendType) {
   return FRONTEND_TO_BACKEND[frontendType] || "text";
 }
 
-export function toFrontendFieldType(backendType) {
+export const LONG_TEXT_VALIDATION_RULE = "max:65535";
+
+export function isMultilineTextField(field) {
+  if (!field) return false;
+
+  return field.type === "rich-text"
+    || field.settings?.editor === "rich-text"
+    || field.settings?.multiline === true
+    || field.validation_rules?.includes(LONG_TEXT_VALIDATION_RULE);
+}
+
+export function toFrontendFieldType(backendType, field) {
+  if (backendType === "text" && isMultilineTextField(field)) return "text";
   return BACKEND_TO_FRONTEND[backendType] || "string";
 }
 

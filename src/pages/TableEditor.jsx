@@ -18,7 +18,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FIELD_TYPES } from '../lib/constants';
-import { toBackendFieldType, toFrontendFieldType, getApiError } from '../lib/utils';
+import {
+  LONG_TEXT_VALIDATION_RULE,
+  toBackendFieldType,
+  toFrontendFieldType,
+  getApiError,
+} from '../lib/utils';
 import {
   getDataType,
   getFields,
@@ -42,7 +47,7 @@ function SortableRow({ column, onDelete, deleting }) {
     transition,
   };
 
-  const frontendType = toFrontendFieldType(column.type);
+  const frontendType = toFrontendFieldType(column.type, column);
 
   return (
     <tr ref={setNodeRef} style={style}>
@@ -175,7 +180,7 @@ export default function TableEditor() {
       type: backendType,
       required: newCol.isRequired,
       translatable: newCol.translatable,
-      validation_rules: [],
+      validation_rules: newCol.fieldType === 'text' ? [LONG_TEXT_VALIDATION_RULE] : [],
       settings: {},
       sort_order: fields.length,
     };

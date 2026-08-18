@@ -15,7 +15,7 @@ import {
 } from '../api/cms';
 import apiClient from '../api/client';
 import { showToast } from '../components/Toast';
-import { getApiError, toFrontendFieldType, slugify } from '../lib/utils';
+import { getApiError, isMultilineTextField, slugify } from '../lib/utils';
 
 export default function EntryForm() {
   const { entrySlug } = useParams();
@@ -504,7 +504,6 @@ export default function EntryForm() {
   function renderFieldInput(field, lang = '_') {
     const value = values[field.id]?.[lang] || '';
     const key = `${field.id}-${lang}`;
-    const frontendType = toFrontendFieldType(field.type);
 
     switch (field.type) {
       case 'boolean':
@@ -537,11 +536,23 @@ export default function EntryForm() {
           />
         );
       case 'rich-text':
+      case 'text':
+        if (isMultilineTextField(field)) {
+          return (
+            <Form.Control
+              key={key}
+              as="textarea"
+              rows={5}
+              value={value}
+              onChange={(e) => handleValueChange(field.id, lang, e.target.value)}
+              placeholder={field.name}
+            />
+          );
+        }
         return (
           <Form.Control
             key={key}
-            as="textarea"
-            rows={5}
+            type="text"
             value={value}
             onChange={(e) => handleValueChange(field.id, lang, e.target.value)}
             placeholder={field.name}

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Form, Button, Badge, Row, Col, Spinner } from 'react-bootstrap';
 import { MODULE_KEYS, MODULE_LABELS } from '../lib/constants';
-import { slugify, getApiError } from '../lib/utils';
+import { LONG_TEXT_VALIDATION_RULE, slugify, getApiError } from '../lib/utils';
 import { getTablesForModules } from '../data/moduleTemplates';
+import { CLINIC_RELATIONS } from '../data/clinicTemplates';
 import { createProject, createDataType, createField } from '../api/cms';
 import { toBackendFieldType } from '../lib/utils';
 import { showToast } from '../components/Toast';
@@ -39,6 +40,7 @@ export default function NewProjectWizard() {
   const [selectedModules, setSelectedModules] = useState(['cms']);
   const [creating, setCreating] = useState(false);
   const [supportedLanguages, setSupportedLanguages] = useState(['en']);
+  const [projectPreset, setProjectPreset] = useState('standard');
 
   const slug = slugify(name);
 
@@ -64,6 +66,14 @@ export default function NewProjectWizard() {
     );
   }
 
+  function selectPreset(preset) {
+    setProjectPreset(preset);
+    if (preset === 'clinic') {
+      setSelectedModules((current) => Array.from(new Set([...current, 'cms', 'booking'])));
+      setSupportedLanguages((current) => Array.from(new Set([...current, 'en', 'ar'])));
+    }
+  }
+
   async function handleCreate() {
     if (!name.trim() || creating) return;
 
@@ -81,7 +91,9 @@ export default function NewProjectWizard() {
       localStorage.setItem('active_project_key', project.public_id);
 
       // Create module template data types and fields
-      const templateTables = getTablesForModules(selectedModules);
+      const templateTables = getTablesForModules(selectedModules, projectPreset);
+      const createdTypes = new Map();
+      const provisioningErrors = [];
       for (const table of templateTables) {
         try {
           const dtRes = await createDataType({
@@ -90,17 +102,19 @@ export default function NewProjectWizard() {
             description: '',
           });
           const dt = dtRes.data?.data || dtRes.data;
+          createdTypes.set(table.name, dt);
 
           // Create fields for this data type
           for (let i = 0; i < table.columns.length; i++) {
             const col = table.columns[i];
             const fieldData = {
               name: col.name,
-              type: toBackendFieldType(col.fieldType),
+              type: col.backendType || toBackendFieldType(col.fieldType),
               required: col.isRequired || false,
-              translatable: false,
-              validation_rules: [],
-              settings: {},
+              translatable: col.translatable || false,
+              validation_rules: col.validationRules
+                || (col.fieldType === 'text' ? [LONG_TEXT_VALIDATION_RULE] : []),
+              settings: col.settings || {},
               sort_order: i,
             };
             if (col.enumValues) {
@@ -108,16 +122,51 @@ export default function NewProjectWizard() {
             }
             try {
               await createField(dt.id, fieldData);
-            } catch {
-              // Continue with other fields
+            } catch (err) {
+              provisioningErrors.push(`${table.name}.${col.name}: ${getApiError(err)}`);
             }
           }
-        } catch {
-          // Continue with other tables
+        } catch (err) {
+          provisioningErrors.push(`${table.name}: ${getApiError(err)}`);
         }
       }
 
-      showToast(`Project "${name.trim()}" created successfully`, 'success');
+      if (projectPreset === 'clinic') {
+        for (const relation of CLINIC_RELATIONS) {
+          const source = createdTypes.get(relation.source);
+          const target = createdTypes.get(relation.target);
+          if (!source || !target) {
+            provisioningErrors.push(`${relation.source}.${relation.name}: related content type was not created`);
+            continue;
+          }
+          try {
+            await createField(source.id, {
+              name: relation.name,
+              type: 'relation',
+              required: false,
+              translatable: false,
+              validation_rules: [],
+              settings: {
+                relation_type: relation.relationType,
+                related_data_type_id: Number(target.id),
+                multiple: relation.relationType !== 'belongs_to',
+              },
+              sort_order: source.fields?.length || 100,
+            });
+          } catch (err) {
+            provisioningErrors.push(`${relation.source}.${relation.name}: ${getApiError(err)}`);
+          }
+        }
+      }
+
+      if (provisioningErrors.length > 0) {
+        showToast(
+          `Project created, but ${provisioningErrors.length} schema item(s) need attention. First error: ${provisioningErrors[0]}`,
+          'error',
+        );
+      } else {
+        showToast(`Project "${name.trim()}" created successfully`, 'success');
+      }
       // If booking is enabled, drop the user straight into resource setup —
       // they need at least one Resource before any booking flows work.
       if (selectedModules.includes('booking')) {
@@ -178,6 +227,27 @@ export default function NewProjectWizard() {
                     onChange={(e) => setName(e.target.value)}
                     autoFocus
                   />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Project preset</Form.Label>
+                  <div className="d-grid gap-2">
+                    <button
+                      type="button"
+                      className={`module-card text-start ${projectPreset === 'clinic' ? 'selected' : ''}`}
+                      onClick={() => selectPreset('clinic')}
+                    >
+                      <div className="module-name"><i className="bi bi-heart-pulse me-2"></i>Clinic website</div>
+                      <p className="module-desc mb-0">Home, doctors, services, health posts, testimonials, FAQs and site settings.</p>
+                    </button>
+                    <button
+                      type="button"
+                      className={`module-card text-start ${projectPreset === 'standard' ? 'selected' : ''}`}
+                      onClick={() => selectPreset('standard')}
+                    >
+                      <div className="module-name"><i className="bi bi-grid me-2"></i>Standard CMS</div>
+                      <p className="module-desc mb-0">Generic pages, posts, media and tags.</p>
+                    </button>
+                  </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Project ID</Form.Label>
@@ -282,6 +352,10 @@ export default function NewProjectWizard() {
                     <Col xs={6}>
                       <div className="review-label">Project name</div>
                       <div className="review-value">{name}</div>
+                    </Col>
+                    <Col xs={6}>
+                      <div className="review-label">Preset</div>
+                      <div className="review-value">{projectPreset === 'clinic' ? 'Clinic website' : 'Standard CMS'}</div>
                     </Col>
                     <Col xs={6}>
                       <div className="review-label">Project ID</div>

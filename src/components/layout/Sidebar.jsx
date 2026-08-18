@@ -94,6 +94,11 @@ export default function Sidebar({
 
   const trailingManageLinks = [
     {
+      to: `/projects/${projectSlug}/clinic-setup`,
+      label: "Clinic setup",
+      icon: "bi-heart-pulse",
+    },
+    {
       to: `/projects/${projectSlug}/collections`,
       label: "Collections",
       icon: "bi-collection",
