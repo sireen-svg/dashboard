@@ -1,0 +1,993 @@
+/* ══════════════════════════════════════════════════════════
+   Documentation — Module Styles
+   ══════════════════════════════════════════════════════════ */
+
+.docs-page-inner {
+  max-width: 880px;
+  animation: docs-fade-in 220ms ease-out;
+}
+
+@keyframes docs-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Hero ── */
+.docs-breadcrumb {
+  font-size: 12px;
+  color: var(--fb-text-secondary);
+  margin-bottom: 12px;
+}
+.docs-breadcrumb a {
+  color: var(--fb-text-link);
+  text-decoration: none;
+}
+.docs-breadcrumb a:hover {
+  text-decoration: underline;
+}
+.docs-breadcrumb-sep {
+  margin: 0 6px;
+  color: var(--fb-text-disabled);
+}
+
+.docs-hero {
+  margin-bottom: 28px;
+}
+.docs-hero-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fb-blue);
+  margin-bottom: 6px;
+}
+.docs-hero-title {
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+  margin: 0 0 8px;
+}
+.docs-hero-highlight {
+  color: var(--fb-blue);
+}
+.docs-hero-subtitle {
+  font-size: 14px;
+  color: var(--fb-text-secondary);
+  line-height: 1.65;
+  margin: 0;
+  max-width: 640px;
+}
+
+.docs-lead {
+  font-size: 14px;
+  color: var(--fb-text-secondary);
+  line-height: 1.7;
+  margin: 0 0 24px;
+}
+
+/* ── Section title ── */
+.docs-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+  margin: 32px 0 14px;
+}
+.docs-section-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--fb-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ── Stats row ── */
+.docs-stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.docs-stat-box {
+  background: var(--fb-surface);
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  padding: 16px 12px;
+  text-align: center;
+  transition: var(--fb-transition);
+}
+.docs-stat-box:hover {
+  box-shadow: var(--fb-shadow-1);
+  transform: translateY(-1px);
+}
+.docs-stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fb-blue);
+}
+.docs-stat-value span {
+  font-size: 14px;
+  margin-left: 1px;
+}
+.docs-stat-label {
+  font-size: 11px;
+  color: var(--fb-text-secondary);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* ── Card grid ── */
+.docs-card-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.docs-card-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.docs-card-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.docs-card-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.docs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+}
+.docs-card-grid--2 .docs-card {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+.docs-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--fb-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.docs-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+}
+.docs-card-body {
+  font-size: 12.5px;
+  color: var(--fb-text-secondary);
+  line-height: 1.55;
+}
+
+/* ── Callouts ── */
+.docs-callout {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: var(--fb-radius);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+}
+.docs-callout-icon {
+  font-size: 15px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.docs-callout--info {
+  background: var(--fb-blue-bg);
+  border-color: rgba(26, 115, 232, 0.15);
+  color: var(--fb-text-primary);
+}
+.docs-callout--info .docs-callout-icon {
+  color: var(--fb-blue);
+}
+.docs-callout--warn {
+  background: var(--fb-yellow-bg);
+  border-color: rgba(251, 188, 4, 0.25);
+  color: var(--fb-text-primary);
+}
+.docs-callout--warn .docs-callout-icon {
+  color: var(--fb-yellow);
+}
+.docs-callout--danger {
+  background: var(--fb-red-bg);
+  border-color: rgba(234, 67, 53, 0.2);
+  color: var(--fb-text-primary);
+}
+.docs-callout--danger .docs-callout-icon {
+  color: var(--fb-red);
+}
+.docs-callout--tip {
+  background: var(--fb-purple-bg);
+  border-color: rgba(154, 106, 255, 0.2);
+  color: var(--fb-text-primary);
+}
+.docs-callout--tip .docs-callout-icon {
+  color: var(--fb-purple);
+}
+.docs-callout code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+/* ── Code block ── */
+.docs-code-block {
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  background: #1c2536;
+}
+.docs-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.docs-code-lang {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+.docs-code-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--fb-cyan);
+  flex-shrink: 0;
+}
+.docs-code-copy {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--fb-radius-sm);
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: var(--fb-transition-fast);
+}
+.docs-code-copy:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.docs-code-body {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #e3e6eb;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+.docs-tok-key {
+  color: #7cc7ff;
+}
+.docs-tok-str {
+  color: #9ee6a8;
+}
+.docs-tok-num {
+  color: #ffb86b;
+}
+.docs-tok-com {
+  color: #6b7688;
+  font-style: italic;
+}
+.docs-tok-null {
+  color: #ff9d9d;
+}
+.docs-tok-bool {
+  color: #ff9d9d;
+}
+
+/* ── Architecture layer stack ── */
+.docs-layer-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.docs-layer {
+  background: var(--fb-surface);
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  transition: var(--fb-transition);
+}
+.docs-layer:hover {
+  box-shadow: var(--fb-shadow-0);
+}
+.docs-layer-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+  min-width: 140px;
+}
+.docs-layer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.docs-chip {
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: var(--fb-body-bg);
+  border: 1px solid var(--fb-border-light);
+  color: var(--fb-text-secondary);
+}
+.docs-chip--accent {
+  background: var(--fb-blue-bg);
+  border-color: rgba(26, 115, 232, 0.2);
+  color: var(--fb-blue);
+  font-weight: 500;
+}
+
+/* ── Flow diagram ── */
+.docs-flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+.docs-flow-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.docs-flow-step {
+  background: var(--fb-surface);
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  padding: 10px 14px;
+  min-width: 130px;
+  transition: var(--fb-transition);
+}
+.docs-flow-step:hover {
+  box-shadow: var(--fb-shadow-1);
+  transform: translateY(-1px);
+}
+.docs-flow-step--accent {
+  border-color: rgba(26, 115, 232, 0.3);
+  background: var(--fb-blue-bg);
+}
+.docs-flow-step--teal {
+  border-color: rgba(0, 188, 212, 0.3);
+  background: var(--fb-cyan-bg);
+}
+.docs-flow-step--green {
+  border-color: rgba(52, 168, 83, 0.3);
+  background: var(--fb-green-bg);
+}
+.docs-flow-step--amber {
+  border-color: rgba(251, 188, 4, 0.35);
+  background: var(--fb-yellow-bg);
+}
+.docs-flow-step--red {
+  border-color: rgba(234, 67, 53, 0.3);
+  background: var(--fb-red-bg);
+}
+.docs-flow-step-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+}
+.docs-flow-step-sub {
+  font-size: 11px;
+  color: var(--fb-text-secondary);
+  margin-top: 2px;
+}
+.docs-flow-arrow {
+  color: var(--fb-text-disabled);
+  font-size: 14px;
+}
+
+/* ── Prev / Next footer nav ── */
+.docs-prev-next {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--fb-border-light);
+}
+.docs-prev-next-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  text-decoration: none;
+  color: inherit;
+  transition: var(--fb-transition-fast);
+}
+.docs-prev-next-link:hover {
+  border-color: var(--fb-blue);
+  background: var(--fb-blue-bg);
+}
+.docs-prev-next-link--next {
+  justify-content: flex-end;
+  text-align: right;
+}
+.docs-prev-next-link i {
+  color: var(--fb-blue);
+  font-size: 14px;
+}
+.docs-prev-next-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fb-text-disabled);
+}
+.docs-prev-next-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+}
+
+/* ── Coming soon ── */
+.docs-coming-soon {
+  max-width: 420px;
+  margin: 60px auto;
+  text-align: center;
+}
+.docs-coming-soon-icon {
+  font-size: 30px;
+  color: var(--fb-text-disabled);
+  margin-bottom: 12px;
+}
+.docs-coming-soon-title {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+  margin-bottom: 8px;
+}
+.docs-coming-soon-body {
+  font-size: 13px;
+  color: var(--fb-text-secondary);
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+/* ── Header box (Required Headers / single headers inside endpoint cards) ── */
+.docs-header-box {
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.docs-header-box-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 1fr;
+  gap: 12px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--fb-border-light);
+  align-items: center;
+}
+.docs-header-box-row:last-child {
+  border-bottom: none;
+}
+.docs-hb-key {
+  font-weight: 500;
+  color: var(--fb-text-primary);
+}
+.docs-hb-val {
+  font-family: monospace;
+  color: var(--fb-blue);
+}
+.docs-hb-note {
+  color: var(--fb-text-secondary);
+  font-size: 12px;
+}
+
+/* ── Param table (request/response fields inside endpoint cards) ── */
+.docs-param-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  overflow: hidden;
+}
+.docs-param-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--fb-body-bg);
+  color: var(--fb-text-secondary);
+  font-weight: 500;
+  border-bottom: 1px solid var(--fb-border-light);
+}
+.docs-param-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--fb-border-light);
+  color: var(--fb-text-primary);
+}
+.docs-param-table tr:last-child td {
+  border-bottom: none;
+}
+.docs-param-type {
+  color: var(--fb-text-link);
+  font-family: monospace;
+}
+.docs-param-notes {
+  color: var(--fb-text-secondary);
+}
+.docs-badge-req {
+  font-size: 10px;
+  color: var(--fb-red);
+  background: var(--fb-red-bg);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-left: 6px;
+}
+
+/* ── Endpoint card ── */
+.docs-endpoint-card {
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.docs-endpoint-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.docs-endpoint-method {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  padding: 3px 9px;
+  border-radius: var(--fb-radius-sm);
+  flex-shrink: 0;
+}
+.docs-endpoint-path {
+  font-family: monospace;
+  font-size: 12.5px;
+  color: var(--fb-text-primary);
+}
+.docs-endpoint-auth {
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  flex-shrink: 0;
+}
+.docs-endpoint-auth--public {
+  background: var(--fb-green-bg);
+  color: var(--fb-green);
+}
+.docs-endpoint-auth--protected {
+  background: var(--fb-yellow-bg);
+  color: var(--fb-yellow);
+}
+.docs-endpoint-auth--service {
+  background: var(--fb-purple-bg);
+  color: var(--fb-purple);
+}
+.docs-endpoint-desc {
+  font-size: 12.5px;
+  color: var(--fb-text-secondary);
+  flex-grow: 1;
+}
+.docs-endpoint-chevron {
+  font-size: 12px;
+  color: var(--fb-text-disabled);
+  transition: transform var(--fb-transition-fast);
+}
+.docs-endpoint-chevron--open {
+  transform: rotate(90deg);
+}
+.docs-endpoint-body {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--fb-border-light);
+  animation: docs-fade-in 160ms ease-out;
+}
+.docs-endpoint-body .docs-code-block:last-child,
+.docs-endpoint-body .docs-callout:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Database schema table ── */
+.docs-db-table {
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.docs-db-table-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--fb-body-bg);
+  border-bottom: 1px solid var(--fb-border-light);
+}
+.docs-db-table-name {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fb-blue);
+}
+.docs-db-table-desc {
+  font-size: 12px;
+  color: var(--fb-text-secondary);
+}
+.docs-db-field {
+  display: grid;
+  grid-template-columns: 180px 120px 1fr 70px;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--fb-border-light);
+  font-size: 12.5px;
+}
+.docs-db-field:last-child {
+  border-bottom: none;
+}
+.docs-db-fname {
+  font-family: monospace;
+  color: var(--fb-text-primary);
+}
+.docs-db-ftype {
+  font-family: monospace;
+  color: var(--fb-purple);
+  font-size: 11.5px;
+}
+.docs-db-fdesc {
+  color: var(--fb-text-secondary);
+}
+.docs-db-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  padding: 2px 7px;
+  border-radius: 100px;
+  justify-self: end;
+}
+.docs-db-badge--pk {
+  background: var(--fb-blue-bg);
+  color: var(--fb-blue);
+}
+.docs-db-badge--fk {
+  background: var(--fb-purple-bg);
+  color: var(--fb-purple);
+}
+.docs-db-badge--uk {
+  background: var(--fb-yellow-bg);
+  color: var(--fb-yellow);
+}
+
+/* ── Response tabs (multiple example responses per endpoint) ── */
+.docs-response-tabs {
+  margin-bottom: 16px;
+}
+.docs-response-tabs-list {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.docs-response-tab {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--fb-border-light);
+  background: var(--fb-surface);
+  color: var(--fb-text-secondary);
+  cursor: pointer;
+  transition: var(--fb-transition-fast);
+}
+.docs-response-tab:hover {
+  border-color: var(--fb-blue);
+}
+.docs-response-tab--active.docs-response-tab--success {
+  background: var(--fb-green-bg);
+  border-color: var(--fb-green);
+  color: var(--fb-green);
+}
+.docs-response-tab--active.docs-response-tab--error {
+  background: var(--fb-red-bg);
+  border-color: var(--fb-red);
+  color: var(--fb-red);
+}
+.docs-response-panel .docs-code-block:last-child,
+.docs-response-panel .docs-param-table:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Generic simple table (Field Types relation table, etc.) ── */
+.docs-simple-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin-bottom: 20px;
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  overflow: hidden;
+}
+.docs-simple-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--fb-body-bg);
+  color: var(--fb-text-secondary);
+  font-weight: 500;
+  border-bottom: 1px solid var(--fb-border-light);
+}
+.docs-simple-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--fb-border-light);
+  color: var(--fb-text-primary);
+  line-height: 1.5;
+}
+.docs-simple-table tr:last-child td {
+  border-bottom: none;
+}
+.docs-simple-table code {
+  background: var(--fb-body-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11.5px;
+}
+
+/* ── Field type grid (Field Types page) ── */
+.docs-fieldtype-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.docs-fieldtype-card {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.docs-fieldtype-badge {
+  align-self: flex-start;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+.docs-fieldtype-badge--blue {
+  background: var(--fb-blue-bg);
+  color: var(--fb-blue);
+}
+.docs-fieldtype-badge--amber {
+  background: var(--fb-yellow-bg);
+  color: var(--fb-yellow);
+}
+.docs-fieldtype-badge--green {
+  background: var(--fb-green-bg);
+  color: var(--fb-green);
+}
+.docs-fieldtype-badge--purple {
+  background: var(--fb-purple-bg);
+  color: var(--fb-purple);
+}
+.docs-fieldtype-badge--teal {
+  background: var(--fb-cyan-bg);
+  color: var(--fb-cyan);
+}
+.docs-fieldtype-badge--red {
+  background: var(--fb-red-bg);
+  color: var(--fb-red);
+}
+.docs-fieldtype-badge--neutral {
+  background: var(--fb-body-bg);
+  color: var(--fb-text-secondary);
+}
+.docs-fieldtype-desc {
+  font-size: 12px;
+  color: var(--fb-text-secondary);
+  line-height: 1.5;
+}
+
+/* ── Step list (generic numbered step chain — DocsStepList) ── */
+.docs-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.docs-step {
+  display: flex;
+  gap: 12px;
+  background: var(--fb-surface);
+  border: 1px solid var(--fb-border-light);
+  border-radius: var(--fb-radius);
+  padding: 12px 16px;
+}
+.docs-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--fb-blue-bg);
+  color: var(--fb-blue);
+  font-size: 11.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.docs-step-num--teal {
+  background: var(--fb-cyan-bg);
+  color: var(--fb-cyan);
+}
+.docs-step-num--green {
+  background: var(--fb-green-bg);
+  color: var(--fb-green);
+}
+.docs-step-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fb-text-primary);
+}
+.docs-step-desc {
+  font-size: 12px;
+  color: var(--fb-text-secondary);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+.docs-step-ok {
+  font-size: 11.5px;
+  color: var(--fb-green);
+  margin-top: 5px;
+}
+.docs-step-fail {
+  font-size: 11.5px;
+  color: var(--fb-red);
+  margin-top: 5px;
+  font-family: monospace;
+}
+
+/* ── Benefit type grid (E-Commerce Architecture page only — page-local, no shared component) ── */
+.docs-benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.docs-benefit-card {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.docs-benefit-badge {
+  align-self: flex-start;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+.docs-benefit-badge--blue {
+  background: var(--fb-blue-bg);
+  color: var(--fb-blue);
+}
+.docs-benefit-badge--green {
+  background: var(--fb-green-bg);
+  color: var(--fb-green);
+}
+.docs-benefit-badge--amber {
+  background: var(--fb-yellow-bg);
+  color: var(--fb-yellow);
+}
+.docs-benefit-badge--teal {
+  background: var(--fb-cyan-bg);
+  color: var(--fb-cyan);
+}
+.docs-benefit-badge--purple {
+  background: var(--fb-purple-bg);
+  color: var(--fb-purple);
+}
+.docs-benefit-badge--red {
+  background: var(--fb-red-bg);
+  color: var(--fb-red);
+}
+.docs-benefit-desc {
+  font-size: 12px;
+  color: var(--fb-text-secondary);
+  line-height: 1.5;
+}
+.docs-benefit-example {
+  font-size: 11px;
+  color: var(--fb-text-disabled);
+  font-family: monospace;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .docs-stats-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .docs-card-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .docs-fieldtype-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .docs-benefit-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .docs-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .docs-card-grid--2,
+  .docs-card-grid--3,
+  .docs-card-grid--4 {
+    grid-template-columns: 1fr;
+  }
+  .docs-prev-next {
+    grid-template-columns: 1fr;
+  }
+  .docs-layer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .docs-header-box-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .docs-db-field {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .docs-db-badge {
+    justify-self: start;
+  }
+  .docs-fieldtype-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .docs-benefit-grid {
+    grid-template-columns: 1fr;
+  }
+}

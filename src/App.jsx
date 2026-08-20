@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -51,12 +52,123 @@ import SearchDebugPage from "./pages/search/SearchDebugPage";
 import SearchConfigPage from "./pages/search/SearchConfigPage";
 import SearchComparePage from "./pages/search/SearchComparePage";
 import SearchAiRerunPage from "./pages/search/SearchAiRerunPage";
+import DocsLayout from "./pages/docs/DocsLayout";
+import DocsComingSoon from "./components/docs/DocsComingSoon";
+import { getFlatDocsLinks, DOCS_READY_PATHS } from "./pages/docs/docsNav";
 
 // Redirect /ai-conversations/:id → /ai-chat/:id so old links still work.
 function RedirectToChat() {
   const { id } = useParams();
   return <Navigate to={`/ai-chat/${id}`} replace />;
 }
+
+// Each docs content page is its own chunk, loaded only when the person
+// actually navigates to it (see DocsLayout's <Suspense>).
+const IntroductionPage = lazy(() => import("./pages/docs/IntroductionPage"));
+const ArchitecturePage = lazy(() => import("./pages/docs/ArchitecturePage"));
+const SetupPage = lazy(() => import("./pages/docs/SetupPage"));
+const CmsOverviewPage = lazy(() => import("./pages/docs/cms/CmsOverviewPage"));
+const CmsArchitecturePage = lazy(
+  () => import("./pages/docs/cms/CmsArchitecturePage"),
+);
+const CmsDatabasePage = lazy(() => import("./pages/docs/cms/CmsDatabasePage"));
+const CmsProjectsPage = lazy(() => import("./pages/docs/cms/CmsProjectsPage"));
+const CmsDataTypesPage = lazy(
+  () => import("./pages/docs/cms/CmsDataTypesPage"),
+);
+const CmsFieldsPage = lazy(() => import("./pages/docs/cms/CmsFieldsPage"));
+const CmsFieldTypesPage = lazy(
+  () => import("./pages/docs/cms/CmsFieldTypesPage"),
+);
+const CmsEntriesPage = lazy(() => import("./pages/docs/cms/CmsEntriesPage"));
+const CmsStatesPage = lazy(() => import("./pages/docs/cms/CmsStatesPage"));
+const CmsVersionsPage = lazy(() => import("./pages/docs/cms/CmsVersionsPage"));
+const CmsRelationsPage = lazy(
+  () => import("./pages/docs/cms/CmsRelationsPage"),
+);
+const CmsCollectionsPage = lazy(
+  () => import("./pages/docs/cms/CmsCollectionsPage"),
+);
+const CmsRatingsPage = lazy(() => import("./pages/docs/cms/CmsRatingsPage"));
+const CmsAnalyticsPage = lazy(
+  () => import("./pages/docs/cms/CmsAnalyticsPage"),
+);
+const CmsSubscriptionsPage = lazy(
+  () => import("./pages/docs/cms/CmsSubscriptionsPage"),
+);
+const CmsPaymentsPage = lazy(() => import("./pages/docs/cms/CmsPaymentsPage"));
+const CmsAiPage = lazy(() => import("./pages/docs/cms/CmsAiPage"));
+const CmsSearchPage = lazy(() => import("./pages/docs/cms/CmsSearchPage"));
+const CmsStockPage = lazy(() => import("./pages/docs/cms/CmsStockPage"));
+const BookingOverviewPage = lazy(
+  () => import("./pages/docs/booking/BookingOverviewPage"),
+);
+const BookingArchitecturePage = lazy(
+  () => import("./pages/docs/booking/BookingArchitecturePage"),
+);
+const BookingDatabasePage = lazy(
+  () => import("./pages/docs/booking/BookingDatabasePage"),
+);
+const BookingResourcesPage = lazy(
+  () => import("./pages/docs/booking/BookingResourcesPage"),
+);
+const BookingAvailabilityPage = lazy(
+  () => import("./pages/docs/booking/BookingAvailabilityPage"),
+);
+const BookingPoliciesPage = lazy(
+  () => import("./pages/docs/booking/BookingPoliciesPage"),
+);
+const BookingBookingsPage = lazy(
+  () => import("./pages/docs/booking/BookingBookingsPage"),
+);
+const BookingPaymentsPage = lazy(
+  () => import("./pages/docs/booking/BookingPaymentsPage"),
+);
+const BookingEventsPage = lazy(
+  () => import("./pages/docs/booking/BookingEventsPage"),
+);
+const BookingAnalyticsDocsPage = lazy(
+  () => import("./pages/docs/booking/BookingAnalyticsPage"),
+);
+const BookingReliabilityPage = lazy(
+  () => import("./pages/docs/booking/BookingReliabilityPage"),
+);
+const EcomOverviewPage = lazy(
+  () => import("./pages/docs/ecommerce/EcomOverviewPage"),
+);
+const EcomArchitecturePage = lazy(
+  () => import("./pages/docs/ecommerce/EcomArchitecturePage"),
+);
+const EcomDatabasePage = lazy(
+  () => import("./pages/docs/ecommerce/EcomDatabasePage"),
+);
+const EcomBusinessLogicPage = lazy(
+  () => import("./pages/docs/ecommerce/EcomBusinessLogicPage"),
+);
+const EcommerceProductsPage = lazy(
+  () => import("./pages/docs/ecommerce/EcommerceProductsPage"),
+);
+const EcommercePricingPage = lazy(
+  () => import("./pages/docs/ecommerce/EcommercePricingPage"),
+);
+const EcommerceCartPage = lazy(
+  () => import("./pages/docs/ecommerce/EcommerceCartPage"),
+);
+const EcommerceCheckoutPage = lazy(
+  () => import("./pages/docs/ecommerce/EcommerceCheckoutPage"),
+);
+const EcommerceOrdersPage = lazy(
+  () => import("./pages/docs/ecommerce/EcommerceOrdersPage"),
+);
+const EcommerceOffersPage = lazy(
+  () => import("./pages/docs/ecommerce/EcommerceOffersPage"),
+);
+const EcommerceWishlistPage = lazy(
+  () => import("./pages/docs/ecommerce/EcommerceWishlistPage"),
+);
+const EcommerceReturnsPage = lazy(() => import("./pages/docs/ecommerce/EcommerceReturnsPage"));
+const EcommercePaymentsPage = lazy(() => import("./pages/docs/ecommerce/EcommercePaymentsPage"));
+const EcommerceAnalyticsPage = lazy(() => import("./pages/docs/ecommerce/EcommerceAnalyticsPage"));
 
 function HeaderWithProjects() {
   const location = useLocation();
@@ -209,6 +321,86 @@ function AppRoutes() {
           {/* ********** */}
           <Route path="api-docs" element={<ApiDocs />} />
           <Route path="settings" element={<ProjectSettings />} />
+        </Route>
+
+        {/* Documentation — top-level like /admin, not scoped to a project */}
+        <Route
+          path="/docs/*"
+          element={
+            <ProtectedRoute>
+              <DocsLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/docs/introduction" replace />} />
+          <Route path="introduction" element={<IntroductionPage />} />
+          <Route path="architecture" element={<ArchitecturePage />} />
+          <Route path="setup" element={<SetupPage />} />
+          <Route path="cms" element={<CmsOverviewPage />} />
+          <Route path="cms/architecture" element={<CmsArchitecturePage />} />
+          <Route path="cms/database" element={<CmsDatabasePage />} />
+          <Route path="cms/projects" element={<CmsProjectsPage />} />
+          <Route path="cms/data-types" element={<CmsDataTypesPage />} />
+          <Route path="cms/fields" element={<CmsFieldsPage />} />
+          <Route path="cms/field-types" element={<CmsFieldTypesPage />} />
+          <Route path="cms/entries" element={<CmsEntriesPage />} />
+          <Route path="cms/states" element={<CmsStatesPage />} />
+          <Route path="cms/versions" element={<CmsVersionsPage />} />
+          <Route path="cms/relations" element={<CmsRelationsPage />} />
+          <Route path="cms/collections" element={<CmsCollectionsPage />} />
+          <Route path="cms/ratings" element={<CmsRatingsPage />} />
+          <Route path="cms/analytics" element={<CmsAnalyticsPage />} />
+          <Route path="cms/subscriptions" element={<CmsSubscriptionsPage />} />
+          <Route path="cms/payments" element={<CmsPaymentsPage />} />
+          <Route path="cms/ai" element={<CmsAiPage />} />
+          <Route path="cms/search" element={<CmsSearchPage />} />
+          <Route path="cms/stock" element={<CmsStockPage />} />
+          <Route path="booking" element={<BookingOverviewPage />} />
+          <Route path="booking/architecture" element={<BookingArchitecturePage />} />
+          <Route path="booking/database" element={<BookingDatabasePage />} />
+          <Route path="booking/resources" element={<BookingResourcesPage />} />
+          <Route path="booking/availability" element={<BookingAvailabilityPage />} />
+          <Route path="booking/policies" element={<BookingPoliciesPage />} />
+          <Route path="booking/bookings" element={<BookingBookingsPage />} />
+          <Route path="booking/payments" element={<BookingPaymentsPage />} />
+          <Route path="booking/events" element={<BookingEventsPage />} />
+          <Route path="booking/analytics" element={<BookingAnalyticsDocsPage />} />
+          <Route path="booking/reliability" element={<BookingReliabilityPage />} />
+          <Route path="ecommerce" element={<EcomOverviewPage />} />
+          <Route
+            path="ecommerce/architecture"
+            element={<EcomArchitecturePage />}
+          />
+          <Route path="ecommerce/database" element={<EcomDatabasePage />} />
+          <Route
+            path="ecommerce/business-logic"
+            element={<EcomBusinessLogicPage />}
+          />
+          <Route
+            path="ecommerce/products"
+            element={<EcommerceProductsPage />}
+          />
+          <Route path="ecommerce/pricing" element={<EcommercePricingPage />} />
+          <Route path="ecommerce/cart" element={<EcommerceCartPage />} />
+          <Route
+            path="ecommerce/checkout"
+            element={<EcommerceCheckoutPage />}
+          />
+          <Route path="ecommerce/orders" element={<EcommerceOrdersPage />} />
+          <Route path="ecommerce/offers" element={<EcommerceOffersPage />} />
+          <Route path="ecommerce/wishlist" element={<EcommerceWishlistPage />} />
+          <Route path="ecommerce/returns" element={<EcommerceReturnsPage />} />
+          <Route path="ecommerce/payments" element={<EcommercePaymentsPage />} />
+          <Route path="ecommerce/analytics" element={<EcommerceAnalyticsPage />} />
+          {getFlatDocsLinks()
+            .filter((link) => !DOCS_READY_PATHS.has(link.to))
+            .map((link) => (
+              <Route
+                key={link.to}
+                path={link.to.replace("/docs/", "")}
+                element={<DocsComingSoon title={link.label} />}
+              />
+            ))}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

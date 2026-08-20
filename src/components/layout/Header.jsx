@@ -112,7 +112,7 @@ export default function Header({ projects = [], currentProject = null }) {
             </div>
           </div>
 
-          {isAdmin && (
+          {/* {isAdmin && (
             <div className="admin-nav-links">
               <Link
                 to="/admin/users"
@@ -135,6 +135,35 @@ export default function Header({ projects = [], currentProject = null }) {
                 <i className="bi bi-graph-up"></i>
                 <span>Analytics</span>
               </Link>
+            </div>
+          )} */}
+          {isAuthenticated && (
+            <div className="admin-nav-links">
+              <Link
+                to="/docs"
+                className={`admin-nav-link ${location.pathname.startsWith("/docs") ? "active" : ""}`}
+              >
+                <i className="bi bi-journal-text"></i>
+                <span>Docs</span>
+              </Link>
+              {isAdmin && (
+                <>
+                  <Link
+                    to="/admin/users"
+                    className={`admin-nav-link ${location.pathname === "/admin/users" ? "active" : ""}`}
+                  >
+                    <i className="bi bi-people"></i>
+                    <span>Users</span>
+                  </Link>
+                  <Link
+                    to="/admin/roles"
+                    className={`admin-nav-link ${location.pathname === "/admin/roles" ? "active" : ""}`}
+                  >
+                    <i className="bi bi-shield-lock"></i>
+                    <span>Roles</span>
+                  </Link>
+                </>
+              )}
             </div>
           )}
 
