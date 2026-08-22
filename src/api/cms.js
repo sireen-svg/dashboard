@@ -35,8 +35,8 @@ export const getFields = (dataTypeSlug) =>
 export const createField = (dataTypeId, data) =>
   apiClient.post(`/cms/data-types/${dataTypeId}/fields`, data);
 export const updateField = (fieldId, data) =>
-  apiClient.put(`/fields/${fieldId}`, data);
-export const deleteField = (fieldId) => apiClient.delete(`/fields/${fieldId}`);
+  apiClient.put(`/cms/fields/${fieldId}`, data);
+export const deleteField = (fieldId) => apiClient.delete(`/cms/fields/${fieldId}`);
 export const getTrashedFields = (dataTypeSlug) =>
   apiClient.get(`/cms/data-types/${dataTypeSlug}/fields/trashed`);
 export const restoreField = (fieldId) =>
