@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { Card, Form, Button, Spinner, Badge, Tab, Tabs, Modal } from 'react-bootstrap';
 import {
@@ -15,7 +15,10 @@ import {
 } from '../api/cms';
 import apiClient from '../api/client';
 import { showToast } from '../components/Toast';
-import { getApiError, isMultilineTextField, slugify } from '../lib/utils';
+import { getApiError, isIconField, isMultilineTextField, slugify } from '../lib/utils';
+// The picker pulls in lucide's ~434 kB name->loader manifest, and most entry forms have
+// no icon field at all, so it is fetched only when one is actually rendered.
+const IconPicker = lazy(() => import('../components/IconPicker'));
 
 export default function EntryForm() {
   const { entrySlug } = useParams();
@@ -504,6 +507,21 @@ export default function EntryForm() {
   function renderFieldInput(field, lang = '_') {
     const value = values[field.id]?.[lang] || '';
     const key = `${field.id}-${lang}`;
+
+    // Icon fields arrive as backend type `select`; the picker replaces the raw input
+    // whatever the underlying type turns out to be.
+    if (isIconField(field)) {
+      return (
+        <Suspense key={key} fallback={<Spinner size="sm" animation="border" />}>
+          <IconPicker
+            value={value}
+            name={field.name}
+            options={field.settings?.options}
+            onChange={(iconName) => handleValueChange(field.id, lang, iconName)}
+          />
+        </Suspense>
+      );
+    }
 
     switch (field.type) {
       case 'boolean':

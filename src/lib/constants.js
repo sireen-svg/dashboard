@@ -10,6 +10,9 @@ export const FIELD_TYPES = [
   'media',
   'json',
   'enum',
+  // Stored as a plain string (the lucide icon name, e.g. "heart-pulse"), but edited
+  // through a searchable picker instead of a free-text box. See isIconField in lib/utils.
+  'icon',
 ];
 
 export const RELATION_KINDS = [
