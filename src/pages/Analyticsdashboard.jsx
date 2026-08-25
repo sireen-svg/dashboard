@@ -12,6 +12,7 @@ import {
 import AnalyticsFilters from "../components/analytics/AnalyticsFilters";
 import AdminAnalyticsView from "../components/analytics/AdminAnalyticsView";
 import ProjectOwnerAnalyticsView from "../components/analytics/ProjectOwnerAnalyticsView";
+import { useAuth } from "../context/AuthContext";
 
 function defaultFilters() {
   const to = new Date();
@@ -57,9 +58,8 @@ function resolveAvailableSections(isAdmin, data) {
 }
 
 export default function AnalyticsDashboard() {
-  const role = getUserRole();
-  const isAdmin = isAdminRole(role);
-
+  const { user } = useAuth();
+  const isAdmin = (user?.roles || []).some((r) => r.name === "admin");
   const [filters, setFilters] = useState(defaultFilters);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export default function AnalyticsDashboard() {
   const availableSections = resolveAvailableSections(isAdmin, data);
 
   // Only show section filter badges whose data exists in the response
-const filterSections = resolveAvailableSections(isAdmin, data);
+  const filterSections = resolveAvailableSections(isAdmin, data);
 
   const hasAnyData = data && Object.keys(data).length > 0;
 
