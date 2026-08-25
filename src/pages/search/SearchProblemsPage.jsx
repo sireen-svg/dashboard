@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { Card, Spinner, Row, Col } from 'react-bootstrap';
 import { getSearchProblems } from '../../api/search';
 
@@ -51,8 +50,63 @@ function IssueList({ title, icon, issues, emptyText }) {
   );
 }
 
+/**
+ * Queries the deterministic pipeline could not resolve on its own, which the
+ * AI fallback then rescued — ordered by how often they recur.
+ *
+ * These are not failures. They are the highest-value backlog in the whole
+ * system: moving a frequently-hit query into resources/search/lexicon/
+ * removes the network call for it permanently, so the engine gets both
+ * faster and cheaper with every entry acted on.
+ */
+function LexiconCandidates({ items }) {
+  return (
+    <Card className="search-enter">
+      <Card.Body className="p-3">
+        <div className="config-card-title">
+          <i className="bi bi-journal-plus"></i>Lexicon candidates
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--fb-text-secondary)', marginBottom: 12 }}>
+          Queries the local pipeline missed and the AI fallback recovered. Adding the
+          frequent ones to the lexicon removes the network call for them permanently.
+        </div>
+
+        {items.length === 0 ? (
+          <div className="d-flex align-items-center gap-2" style={{ fontSize: 13, color: 'var(--fb-green)', fontWeight: 500 }}>
+            <i className="bi bi-check-circle-fill"></i>The local pipeline is handling everything — no AI fallback needed.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table table-sm mb-0" style={{ fontSize: 12.5 }}>
+              <thead>
+                <tr>
+                  {['Query', 'Lang', 'Times reused', 'Confidence', 'Provider'].map(h => (
+                    <th key={h} style={{ fontSize: 11, color: 'var(--fb-text-secondary)', fontWeight: 600, padding: '6px 8px' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((it, i) => (
+                  <tr key={i}>
+                    <td style={{ padding: '7px 8px', fontWeight: 500 }}>{it.original_query}</td>
+                    <td style={{ padding: '7px 8px', fontFamily: 'monospace', color: 'var(--fb-text-secondary)' }}>{it.language}</td>
+                    <td style={{ padding: '7px 8px', fontFamily: 'monospace', fontWeight: 600, color: it.hit_count > 5 ? 'var(--fb-orange)' : 'var(--fb-text-primary)' }}>
+                      {it.hit_count}
+                    </td>
+                    <td style={{ padding: '7px 8px', fontFamily: 'monospace' }}>{Number(it.confidence).toFixed(2)}</td>
+                    <td style={{ padding: '7px 8px', color: 'var(--fb-text-secondary)' }}>{it.provider ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card.Body>
+    </Card>
+  );
+}
+
 export default function SearchProblemsPage() {
-  const { project } = useOutletContext();
   const [loading, setLoading] = useState(true);
   const [data, setData]       = useState(null);
   const [error, setError]     = useState(null);
@@ -69,12 +123,10 @@ export default function SearchProblemsPage() {
     } finally { setLoading(false); }
   }
 
-  const isHealthy = data && !data.zero_results?.length && !data.low_results?.length
-    && !data.high_ai_usage?.length && !data.suspicious_queries?.length;
+  const isHealthy = data && !data.zero_results?.length && !data.low_results?.length;
 
   const totalIssues = data
     ? (data.zero_results?.length ?? 0) + (data.low_results?.length ?? 0)
-      + (data.high_ai_usage?.length ?? 0) + (data.suspicious_queries?.length ?? 0)
     : 0;
 
   return (
@@ -148,15 +200,8 @@ export default function SearchProblemsPage() {
                 issues={data.low_results ?? []}
                 emptyText="Fewer than 3 results — index may need expanding." />
             </Col>
-            <Col md={6}>
-              <IssueList title="High AI usage" icon="bi-cpu"
-                issues={data.high_ai_usage ?? []}
-                emptyText="Queries relying excessively on AI correction." />
-            </Col>
-            <Col md={6}>
-              <IssueList title="Suspicious queries" icon="bi-shield-exclamation"
-                issues={data.suspicious_queries ?? []}
-                emptyText="Unusual patterns that may need manual review." />
+            <Col md={12}>
+              <LexiconCandidates items={data.lexicon_candidates ?? []} />
             </Col>
           </Row>
         </>

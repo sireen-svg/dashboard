@@ -54,24 +54,66 @@ export default function CmsSearchPage() {
       <DocsSectionTitle>Admin / Debug Search APIs</DocsSectionTitle>
 
       {/* POST debug */}
-      <DocsEndpointCard method="POST" path="/api/admin/search/debug" authTag="🔐 auth.user" authTone="protected" description="Debug Mode — كيف حُسِبت الـ Scores">
-        <DocsCodeBlock language="json" code={`{ "query": "laptop gaming", "show_scores": true }`} />
+      <DocsEndpointCard method="POST" path="/api/admin/search/debug" authTag="🔐 auth.user" authTone="protected" description="تفكيك بحث واحد إلى مراحله">
+        <DocsCodeBlock language="json" code={`{ "keyword": "iphone released in 2020", "language": "en", "project_id": 2 }`} />
         <DocsCodeBlock language="json" code={`{
-  "results": [...],
-  "debug": {
-    "query_tokens":   ["laptop", "gaming"],
-    "intent":         "buy",
-    "typo_corrected": false,
-    "ranking_breakdown": [
-      { "entry_id": 5, "fulltext": 2.4, "phrase": 8, "ctr": 0.3, "final": 10.7 }
-    ]
-  }
+  "execution_time_ms": 31.4,
+  "text_pipeline": {
+    "folded":         "iphone released in 2020",
+    "script_profile": { "Latn": 1.0 },
+    "needs_ngram":    false,
+    "tokens":         ["iphone", "released", "in", "2020"]
+  },
+  "plan": {
+    "terms":      ["iphone"],
+    "expansions": [],
+    "must_not":   [],
+    "filters":    [
+      { "key": "year", "operator": "eq", "value": 2020, "confidence": 0.9, "hard": true }
+    ],
+    "intent":     { "intent": "general", "confidence": 0 },
+    "source":     "local"
+  },
+  "retrieval": {
+    "boolean_queries":      ["+iphone*", "iphone*"],
+    "relaxation_step_used": 0,
+    "match_target":         "ft_fold (default parser)",
+    "total_matches":        3,
+    "window": { "size": 200, "sql_offset": 0, "reranked": true }
+  },
+  "rescue":  { "attempted": false, "accepted": null, "tried": [] },
+  "refiner": { "used": false, "source": "local" },
+  "results": [
+    {
+      "entry_id": 5,
+      "title": "iPhone 12",
+      "score": {
+        "bm25f": 6.21, "phrase_bonus": 0, "signals": 4.9,
+        "base": 11.11, "personalization_multiplier": 1.0, "final": 11.11
+      }
+    }
+  ]
 }`} />
       </DocsEndpointCard>
 
-      {/* POST compare */}
-      <DocsEndpointCard method="POST" path="/api/admin/search/compare" authTag="🔐 auth.user" authTone="protected" description="مقارنة نتائج query-ين">
-        <DocsCodeBlock language="json" code={`{ "query_a": "laptop", "query_b": "gaming laptop" }`} />
+      {/* POST terms */}
+      <DocsEndpointCard method="POST" path="/api/admin/search/terms" authTag="🔐 auth.user" authTone="protected" description="وزن IDF لكل مصطلح في متن المشروع">
+        <DocsCodeBlock language="json" code={`{ "keyword": "iphone pro", "language": "en", "project_id": 2 }`} />
+        <DocsCodeBlock language="json" code={`{
+  "corpus": { "document_count": 46, "avg_title_terms": 3.2, "avg_content_terms": 87.4 },
+  "terms": [
+    { "term": "iphone", "document_frequency": 2,  "idf": 3.09, "is_expansion": false },
+    { "term": "pro",    "document_frequency": 18, "idf": 0.94, "is_expansion": false }
+  ]
+}`} />
+      </DocsEndpointCard>
+
+      {/* GET problems */}
+      <DocsEndpointCard method="GET" path="/api/admin/search/problems" authTag="🔐 auth.user" authTone="protected" description="الاستعلامات المتعثّرة ومرشّحو المعجم">
+        <p>
+          <code>lexicon_candidates</code> تسرد ما عجز عنه المسار المحلّي وأنقذه النموذج —
+          نقلها إلى <code>resources/search/lexicon/</code> يُلغي استدعاء الشبكة لها نهائياً.
+        </p>
       </DocsEndpointCard>
 
       {/* GET logs */}

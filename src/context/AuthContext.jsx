@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as authApi from '../api/auth';
+import { homePathFor, isHyperCoreAccount, roleNames } from '../lib/roles';
 
 const AuthContext = createContext(null);
 
@@ -7,11 +8,14 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Returns the resolved profile (or null). Callers that need to route on the
+  // account's role cannot read `user` right after awaiting this — the state
+  // update has not landed yet — so the profile is handed back directly.
   const fetchUser = useCallback(async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
       setLoading(false);
-      return;
+      return null;
     }
     try {
       const res = await authApi.getMyProfile();
@@ -19,11 +23,14 @@ export function AuthProvider({ children }) {
       const permissions = (userData.roles || []).flatMap(
         (r) => (r.permessions || r.permissions || []).map((p) => p.name)
       );
-      setUser({ ...userData, permissions });
+      const resolved = { ...userData, permissions };
+      setUser(resolved);
+      return resolved;
     } catch {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -40,9 +47,10 @@ export function AuthProvider({ children }) {
     localStorage.setItem('auth_token', access_token);
     if (refresh_token) localStorage.setItem('refresh_token', refresh_token);
 
-    // Fetch full profile with roles/permissions
-    await fetchUser();
-    return userData;
+    // The login response carries no roles, so the profile call is what decides
+    // which dashboard this account lands on.
+    const profile = await fetchUser();
+    return profile ?? userData;
   }
 
   async function register(name, email, password, passwordConfirmation) {
@@ -87,6 +95,18 @@ export function AuthProvider({ children }) {
     return user?.permissions?.includes(name) ?? false;
   }
 
+  function hasRole(name) {
+    return roleNames(user).includes(name);
+  }
+
+  // Platform operator. The Auth Service seeds `hyper_core` with a null
+  // project_id and only lets an existing hyper_core grant it, so holding the
+  // role is what identifies the platform owner.
+  const isHyperCore = isHyperCoreAccount(user);
+
+  // Where this account belongs after signing in.
+  const homePath = homePathFor(user);
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -98,6 +118,9 @@ export function AuthProvider({ children }) {
       logout,
       changePassword,
       hasPermission,
+      hasRole,
+      isHyperCore,
+      homePath,
       isAuthenticated: !!user,
     }}>
       {children}

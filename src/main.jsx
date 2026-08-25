@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './styles/index.css';
 import './styles/search.css';
+import './styles/subscriptions.css';
+import './styles/platform.css';
 import './styles/docs.css';
 import App from './App';
 

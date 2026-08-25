@@ -2,22 +2,24 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
+import { homePathFor } from '../lib/roles';
 import { getApiError } from '../lib/utils';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, homePath } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  // A bounced-from path wins; otherwise the landing page depends on the role.
+  const from = location.state?.from?.pathname || null;
 
   if (isAuthenticated) {
-    navigate(from, { replace: true });
+    navigate(from || homePath, { replace: true });
     return null;
   }
 
@@ -28,8 +30,8 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email.trim(), password);
-      navigate(from, { replace: true });
+      const account = await login(email.trim(), password);
+      navigate(from || homePathFor(account), { replace: true });
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error;
       if (msg?.toLowerCase().includes('locked')) {

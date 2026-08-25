@@ -1,0 +1,82 @@
+/* ══════════════════════════════════════════════════════════
+   Platform Owner Dashboard — sidebar identity
+   Same structure as the project sidebar (app-sidebar), given a
+   red accent so it is impossible to confuse the platform-wide
+   view with a single tenant's project.
+
+   The pages reuse search.css's .search-stat-card / .search-enter
+   / .config-card-title so the whole admin surface reads as one
+   system.
+   ══════════════════════════════════════════════════════════ */
+
+.sidebar-section-platform {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sidebar-section-platform::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ea4335;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.5);
+  animation: platform-pulse 2.4s ease-in-out infinite;
+}
+@keyframes platform-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.5); }
+  50%      { box-shadow: 0 0 0 4px rgba(234, 67, 53, 0); }
+}
+
+/* A thin red rail down the whole sidebar — a persistent reminder that this
+   view crosses every tenant. */
+.platform-sidebar {
+  border-left: 3px solid #ea4335;
+}
+
+.platform-nav .nav-link.active {
+  background: rgba(234, 67, 53, 0.1);
+  color: #ffffff;
+  border-left-color: #ea4335;
+}
+.platform-nav .nav-link.active i {
+  opacity: 1;
+  color: #ea4335;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-section-platform::before {
+    animation: none;
+  }
+}
+
+/* Header marker shown where the project selector sits for builders. The
+   operator has no project to select, so the slot states the role instead of
+   sitting empty. */
+.header-operator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 14px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: rgba(234, 67, 53, 0.22);
+  border: 1px solid rgba(234, 67, 53, 0.55);
+  white-space: nowrap;
+}
+.header-operator-badge i {
+  font-size: 11px;
+  color: #ff8a80;
+}

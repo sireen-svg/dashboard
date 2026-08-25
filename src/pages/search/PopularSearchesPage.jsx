@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { Card, Spinner, Row, Col, Table, Form } from 'react-bootstrap';
 import { getPopularSearches } from '../../api/search';
 
@@ -10,7 +9,6 @@ const INTENT_CLASS = {
 };
 
 export default function PopularSearchesPage() {
-  const { project } = useOutletContext();
   const [loading, setLoading] = useState(true);
   const [data, setData]       = useState(null);
   const [error, setError]     = useState(null);

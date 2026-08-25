@@ -10,8 +10,11 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import HyperCoreRoute from "./components/HyperCoreRoute";
+import TenantRoute from "./components/TenantRoute";
 import Header from "./components/layout/Header";
 import ProjectLayout from "./components/layout/ProjectLayout";
+import PlatformLayout from "./components/layout/PlatformLayout";
 import ToastContainer from "./components/Toast";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -50,8 +53,16 @@ import SearchLogsPage from "./pages/search/SearchLogsPage";
 import SearchProblemsPage from "./pages/search/SearchProblemsPage";
 import SearchDebugPage from "./pages/search/SearchDebugPage";
 import SearchConfigPage from "./pages/search/SearchConfigPage";
-import SearchComparePage from "./pages/search/SearchComparePage";
 import SearchAiRerunPage from "./pages/search/SearchAiRerunPage";
+import PlatformOverview from "./pages/platform/PlatformOverview";
+import AllProjectsPage from "./pages/platform/AllProjectsPage";
+import SystemHealthPage from "./pages/platform/SystemHealthPage";
+import PlatformLogsPage from "./pages/platform/PlatformLogsPage";
+import AuditTrailPage from "./pages/platform/AuditTrailPage";
+import PlansPage from "./pages/subscriptions/PlansPage";
+import SubscribersPage from "./pages/subscriptions/SubscribersPage";
+import FeatureRulesPage from "./pages/subscriptions/FeatureRulesPage";
+import ContentAccessPage from "./pages/subscriptions/ContentAccessPage";
 import DocsLayout from "./pages/docs/DocsLayout";
 import DocsComingSoon from "./components/docs/DocsComingSoon";
 import { getFlatDocsLinks, DOCS_READY_PATHS } from "./pages/docs/docsNav";
@@ -60,6 +71,18 @@ import { getFlatDocsLinks, DOCS_READY_PATHS } from "./pages/docs/docsNav";
 function RedirectToChat() {
   const { id } = useParams();
   return <Navigate to={`/ai-chat/${id}`} replace />;
+}
+
+// "/" lands on whichever dashboard belongs to this account. Hard-coding
+// /dashboard here sent the platform operator through a second bounce, since
+// TenantRoute turns them away from it.
+function HomeRedirect() {
+  const { loading, isAuthenticated, homePath } = useAuth();
+
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  return <Navigate to={homePath} replace />;
 }
 
 // Each docs content page is its own chunk, loaded only when the person
@@ -172,7 +195,7 @@ const EcommerceAnalyticsPage = lazy(() => import("./pages/docs/ecommerce/Ecommer
 
 function HeaderWithProjects() {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isHyperCore } = useAuth();
   const [projects, setProjects] = useState([]);
 
   const match = location.pathname.match(/^\/projects\/([^/]+)/);
@@ -182,12 +205,15 @@ function HeaderWithProjects() {
     : null;
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // The operator's header shows no project selector, so this list would go
+    // unused — and for that role /api/projects returns every project on the
+    // platform, which is a pointless payload to pull on each navigation.
+    if (isAuthenticated && !isHyperCore) {
       getProjects()
         .then((res) => setProjects(res.data?.data || res.data || []))
         .catch(() => {});
     }
-  }, [isAuthenticated, location.pathname]);
+  }, [isAuthenticated, isHyperCore, location.pathname]);
 
   if (!isAuthenticated) return null;
 
@@ -199,7 +225,7 @@ function AppRoutes() {
     <>
       <HeaderWithProjects />
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
@@ -207,50 +233,50 @@ function AppRoutes() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <DashboardPage />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         />
         <Route
           path="/analytics"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <AnalyticsDashboard />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         />
         <Route
           path="/ai-conversations"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <AiConversationList />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         />
         {/* Legacy /ai-conversations/:id → redirect to chat */}
         <Route
           path="/ai-conversations/:id"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <RedirectToChat />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         />
         <Route
           path="/ai-chat"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <AiChat />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         />
         <Route
           path="/ai-chat/:id"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <AiChat />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         />
         <Route
@@ -269,20 +295,36 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        {/* Platform owner (hyper_core) — not scoped to any single project */}
+        <Route
+          path="/platform"
+          element={
+            <HyperCoreRoute>
+              <PlatformLayout />
+            </HyperCoreRoute>
+          }
+        >
+          <Route index element={<PlatformOverview />} />
+          <Route path="projects" element={<AllProjectsPage />} />
+          <Route path="health" element={<SystemHealthPage />} />
+          <Route path="logs" element={<PlatformLogsPage />} />
+          <Route path="audit-logs" element={<AuditTrailPage />} />
+        </Route>
+
         <Route
           path="/projects/new"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <NewProjectWizard />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         />
         <Route
           path="/projects/:slug/*"
           element={
-            <ProtectedRoute>
+            <TenantRoute>
               <ProjectLayout />
-            </ProtectedRoute>
+            </TenantRoute>
           }
         >
           <Route index element={<ProjectOverview />} />
@@ -316,8 +358,17 @@ function AppRoutes() {
           <Route path="search/problems" element={<SearchProblemsPage />} />
           <Route path="search/debug" element={<SearchDebugPage />} />
           <Route path="search/config" element={<SearchConfigPage />} />
-          <Route path="search/compare" element={<SearchComparePage />} />
           <Route path="search/ai-rerun" element={<SearchAiRerunPage />} />
+          {/* ********** */}
+          {/* Subscriptions admin */}
+          <Route
+            path="subscriptions"
+            element={<Navigate to="plans" replace />}
+          />
+          <Route path="subscriptions/plans" element={<PlansPage />} />
+          <Route path="subscriptions/subscribers" element={<SubscribersPage />} />
+          <Route path="subscriptions/feature-rules" element={<FeatureRulesPage />} />
+          <Route path="subscriptions/content-access" element={<ContentAccessPage />} />
           {/* ********** */}
           <Route path="api-docs" element={<ApiDocs />} />
           <Route path="settings" element={<ProjectSettings />} />
