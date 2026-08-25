@@ -9,7 +9,7 @@ import {
   getResourceBookings,
 } from '../api/booking';
 import { showToast } from '../components/Toast';
-import { getApiError } from '../lib/utils';
+import { formatClinicDateTime, getApiError } from '../lib/utils';
 
 const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -608,10 +608,10 @@ function BookingsTab({ resourceId }) {
                     <td className="font-monospace" style={{ fontSize: 12 }}>#{b.id}</td>
                     <td style={{ fontSize: 13 }}>{b.user_id ?? '-'}</td>
                     <td style={{ fontSize: 13 }}>
-                      {b.start_at ? new Date(b.start_at).toLocaleString() : '-'}
+                      {formatClinicDateTime(b.start_at)}
                     </td>
                     <td style={{ fontSize: 13 }}>
-                      {b.end_at ? new Date(b.end_at).toLocaleString() : '-'}
+                      {formatClinicDateTime(b.end_at)}
                     </td>
                     <td>
                       <Badge bg={BOOKING_STATUS_VARIANTS[b.status] || 'secondary'}>

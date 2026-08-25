@@ -189,6 +189,14 @@ export default function TableEditor() {
       fieldData.settings.enum_values = newCol.enumValues.split(',').map((v) => v.trim()).filter(Boolean);
     }
 
+    // An icon field is a select over lucide's icon names. SelectFieldStrategy requires
+    // settings.options, and that list is also what identifies the field as an icon
+    // picker later. Imported lazily so lucide's manifest stays out of the main bundle.
+    if (newCol.fieldType === 'icon') {
+      const { iconNames } = await import('lucide-react/dynamic');
+      fieldData.settings.options = [...iconNames];
+    }
+
     setSaving(true);
     try {
       await createField(dataType.id, fieldData);

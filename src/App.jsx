@@ -39,7 +39,7 @@ import OrderList from "./pages/OrderList";
 import OrderDetail from "./pages/OrderDetail";
 import ReturnList from "./pages/ReturnList";
 import EcommerceAnalytics from "./pages/EcommerceAnalytics";
-import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import AnalyticsDashboard from "./pages/Analyticsdashboard";
 import AiConversationList from "./pages/AiConversationList";
 import AiChat from "./pages/AiChat";
 import RegisterPage from "./pages/RegisterPage";

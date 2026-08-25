@@ -26,6 +26,10 @@ const FRONTEND_TO_BACKEND = {
   media: "file",
   json: "text",
   enum: "text",
+  // Icons ride on the backend `select` type: the value is one lucide icon name
+  // chosen from settings.options. `text` cannot carry the marker, because
+  // TextFieldStrategy::normalizeSettings keeps only placeholder/default.
+  icon: "select",
 };
 
 // Maps CMS backend field types to frontend field types
@@ -54,7 +58,24 @@ export function isMultilineTextField(field) {
     || field.validation_rules?.includes(LONG_TEXT_VALIDATION_RULE);
 }
 
+// SelectFieldStrategy preserves only options/default/multiple, so there is nowhere
+// to put an explicit marker — an icon field is recognised by its option list instead.
+// A hand-authored select never has hundreds of options, let alone lucide's names.
+const ICON_OPTION_SENTINEL = "stethoscope";
+const ICON_OPTION_MIN = 500;
+
+export function isIconField(field) {
+  const options = field?.settings?.options;
+
+  return (
+    Array.isArray(options) &&
+    options.length >= ICON_OPTION_MIN &&
+    options.includes(ICON_OPTION_SENTINEL)
+  );
+}
+
 export function toFrontendFieldType(backendType, field) {
+  if (backendType === "select" && isIconField(field)) return "icon";
   if (backendType === "text" && isMultilineTextField(field)) return "text";
   return BACKEND_TO_FRONTEND[backendType] || "string";
 }
@@ -85,4 +106,27 @@ export function timeAgo(dateString) {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(dateString).toLocaleDateString();
+}
+
+// Booking `start_at` / `end_at` are clinic wall-clock times that the API mislabels as
+// UTC: the row holds "2026-08-24 14:00:00" and the Eloquent datetime cast serializes it
+// as "2026-08-24T14:00:00.000000Z". Trusting that Z re-anchors the value to a real
+// instant, so the admin renders it shifted by its own offset (14:00 -> 5:00 PM at +03).
+// Read the clock digits instead. Not for created_at/updated_at, which really are UTC —
+// use timeAgo for those.
+export function formatClinicDateTime(value) {
+  if (!value) return "-";
+
+  const match = String(value).match(
+    /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/
+  );
+  if (!match) return "-";
+
+  const [, year, month, day, hour, minute, second] = match;
+  const date = new Date(
+    Number(year), Number(month) - 1, Number(day),
+    Number(hour), Number(minute), Number(second || 0)
+  );
+
+  return Number.isNaN(date.getTime()) ? "-" : date.toLocaleString();
 }
