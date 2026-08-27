@@ -34,14 +34,22 @@ const FRONTEND_TO_BACKEND = {
   icon: "select",
 };
 
-// Maps CMS backend field types to frontend field types
+// Maps CMS backend field types to frontend field types.
+//
+// Every key here must be a type FieldTypeFactory can actually produce:
+// text, number, boolean, select, json, relation, file. `select` and `json` used
+// to be missing, so they fell through the `|| "string"` default and rendered
+// with a string badge. Dropped at the same time: "rich-text" and "date", which
+// no backend strategy ever emits — the editor restores those two through the
+// marker checks in toFrontendFieldType, not through this map.
 const BACKEND_TO_FRONTEND = {
   text: "string",
-  "rich-text": "text",
   number: "number",
   boolean: "boolean",
-  date: "date",
+  select: "enum",
+  json: "json",
   file: "media",
+  // No dedicated relation editor yet; a relation renders as its target's label.
   relation: "string",
 };
 

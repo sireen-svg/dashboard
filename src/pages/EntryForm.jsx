@@ -15,6 +15,7 @@ import {
 } from '../api/cms';
 import apiClient from '../api/client';
 import { showToast } from '../components/Toast';
+import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import { getApiError, isDateField, isIconField, isMultilineTextField, slugify } from '../lib/utils';
 // The picker pulls in lucide's ~434 kB name->loader manifest, and most entry forms have
 // no icon field at all, so it is fetched only when one is actually rendered.
@@ -685,43 +686,14 @@ export default function EntryForm() {
         }
 
         return (
-          <div
+          <MultiSelectDropdown
             key={key}
-            style={{
-              border: '1px solid #ced4da',
-              borderRadius: 6,
-              padding: 8,
-              maxHeight: 220,
-              overflowY: 'auto',
-              background: '#fff',
-            }}
-          >
-            {options.length === 0 ? (
-              <div style={{ fontSize: 13, color: '#5f6368', padding: 4 }}>
-                No {targetDtName} entries to pick from yet.
-              </div>
-            ) : (
-              options.map((opt) => {
-                const checked = selectedIds.includes(opt.id);
-                return (
-                  <Form.Check
-                    key={opt.id}
-                    type="checkbox"
-                    id={`${key}-${opt.id}`}
-                    label={opt.label}
-                    checked={checked}
-                    onChange={(e) => {
-                      const next = e.target.checked
-                        ? [...selectedIds, opt.id]
-                        : selectedIds.filter((id) => id !== opt.id);
-                      handleValueChange(field.id, lang, next);
-                    }}
-                    className="mb-1"
-                  />
-                );
-              })
-            )}
-          </div>
+            options={options}
+            selected={selectedIds}
+            onChange={(next) => handleValueChange(field.id, lang, next)}
+            placeholder={`Select ${targetDtName}…`}
+            emptyText={`No ${targetDtName} entries to pick from yet.`}
+          />
         );
       }
       default:

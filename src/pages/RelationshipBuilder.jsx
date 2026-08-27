@@ -11,6 +11,39 @@ const BACKEND_RELATION_KINDS = [
   { value: 'many_to_many', label: 'Many to Many' },
 ];
 
+/*
+ | Data type slugs are plural (`products`, `post_categories`), but a belongs_to
+ | field points at exactly one row, so it reads as `product_id` — which is the
+ | convention every relation field already in the database follows
+ | (category_id, doctor_id). Naive `${slug}_id` produced `products_id`.
+ */
+function singularize(slug) {
+  if (slug.endsWith('ies')) return `${slug.slice(0, -3)}y`;
+  if (slug.endsWith('ss')) return slug;
+  if (slug.endsWith('s')) return slug.slice(0, -1);
+
+  return slug;
+}
+
+/*
+ | The name has to follow the kind, not just the target:
+ |
+ |   belongs_to    one target  -> singular + _id   product_id
+ |   has_many      many        -> plural, no _id   products
+ |   many_to_many  many        -> plural, no _id   products
+ |
+ | Relations are stored in the data_entry_relations join table, so nothing here
+ | creates an actual foreign-key column. Suffixing `_id` onto a field that the
+ | backend marks `multiple: true` just made the name contradict the data.
+ */
+function defaultFieldName(targetSlug, relationKind) {
+  if (!targetSlug) return '';
+
+  return relationKind === 'belongs_to'
+    ? `${singularize(targetSlug)}_id`
+    : targetSlug;
+}
+
 export default function RelationshipBuilder() {
   const { project, dataTypes, refreshDataTypes } = useOutletContext();
   const [showForm, setShowForm] = useState(false);
@@ -74,12 +107,25 @@ export default function RelationshipBuilder() {
       }))
   );
 
+  function targetSlugFor(targetId) {
+    return dataTypes.find((dt) => dt.id === Number(targetId))?.slug || '';
+  }
+
   function handleTargetChange(targetId) {
-    const targetName = dataTypes.find((dt) => dt.id === Number(targetId))?.slug || '';
     setForm({
       ...form,
       targetTypeId: targetId,
-      sourceColumn: targetName ? `${targetName}_id` : '',
+      sourceColumn: defaultFieldName(targetSlugFor(targetId), form.relationKind),
+    });
+  }
+
+  // Changing the kind has to re-derive the name too, otherwise switching from
+  // Belongs To to Has Many leaves the stale `product_id` sitting in the box.
+  function handleKindChange(relationKind) {
+    setForm({
+      ...form,
+      relationKind,
+      sourceColumn: defaultFieldName(targetSlugFor(form.targetTypeId), relationKind),
     });
   }
 
@@ -250,7 +296,7 @@ export default function RelationshipBuilder() {
                     <Form.Label>Kind</Form.Label>
                     <Form.Select
                       value={form.relationKind}
-                      onChange={(e) => setForm({ ...form, relationKind: e.target.value })}
+                      onChange={(e) => handleKindChange(e.target.value)}
                     >
                       {BACKEND_RELATION_KINDS.map((k) => (
                         <option key={k.value} value={k.value}>{k.label}</option>
@@ -260,7 +306,7 @@ export default function RelationshipBuilder() {
                 </Col>
                 <Col md={2}>
                   <Form.Group>
-                    <Form.Label>FK column</Form.Label>
+                    <Form.Label>Field name</Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="e.g. category_id"

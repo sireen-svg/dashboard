@@ -15,12 +15,6 @@ export const FIELD_TYPES = [
   'icon',
 ];
 
-export const RELATION_KINDS = [
-  'one-to-one',
-  'one-to-many',
-  'many-to-many',
-];
-
 export const MODULE_KEYS = ['ecommerce', 'booking', 'cms'];
 
 export const MODULE_LABELS = {

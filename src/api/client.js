@@ -126,6 +126,33 @@ apiClient.interceptors.response.use(
     logError('CMS', err);
     const originalRequest = err.config;
 
+    // Schema-authoring flows (the new-project wizard especially) legitimately
+    // fire dozens of writes back to back — one request per data type, then one
+    // per field, with no bulk endpoint to batch them. The CMS burst guard is
+    // 5/second, so a tight loop trips it partway through and used to abort the
+    // wizard with a half-built project.
+    //
+    // Laravel answers with Retry-After (1 second, in practice), so honour it
+    // and replay the request instead of surfacing the error. The small extra
+    // delay covers the window boundary being rounded down server-side.
+    if (err.response?.status === 429) {
+      const attempt = originalRequest._throttleRetries ?? 0;
+      const MAX_THROTTLE_RETRIES = 5;
+
+      if (attempt < MAX_THROTTLE_RETRIES) {
+        originalRequest._throttleRetries = attempt + 1;
+
+        const retryAfter = Number(err.response.headers?.['retry-after']);
+        const waitMs =
+          Number.isFinite(retryAfter) && retryAfter > 0
+            ? retryAfter * 1000
+            : 2 ** attempt * 500; // fall back to backoff if the header is absent
+
+        await new Promise((resolve) => setTimeout(resolve, waitMs + 100));
+        return apiClient(originalRequest);
+      }
+    }
+
     if (err.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // Queue requests while refreshing

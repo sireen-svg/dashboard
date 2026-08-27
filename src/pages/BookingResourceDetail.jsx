@@ -8,6 +8,7 @@ import {
   setPolicy,
   getResourceBookings,
 } from '../api/booking';
+import { getAllUsers } from '../api/auth';
 import { showToast } from '../components/Toast';
 import { formatClinicDateTime, getApiError } from '../lib/utils';
 
@@ -522,6 +523,30 @@ function BookingsTab({ resourceId }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', from: '', to: '' });
+  // The booking service owns no user names — it stores only user_id, and the
+  // names live in Auth. Fetch the directory once and resolve locally rather
+  // than making the bookings list N calls deep.
+  const [userNames, setUserNames] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getAllUsers();
+        const rows = res.data?.data || res.data || [];
+        if (cancelled) return;
+
+        setUserNames(
+          Object.fromEntries(rows.map((u) => [String(u.id), u.name || u.email]))
+        );
+      } catch {
+        // Non-fatal: the table falls back to the raw id.
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -606,7 +631,11 @@ function BookingsTab({ resourceId }) {
                 {bookings.map((b) => (
                   <tr key={b.id}>
                     <td className="font-monospace" style={{ fontSize: 12 }}>#{b.id}</td>
-                    <td style={{ fontSize: 13 }}>{b.user_id ?? '-'}</td>
+                    <td style={{ fontSize: 13 }}>
+                      {b.user_id == null
+                        ? '-'
+                        : userNames[String(b.user_id)] || `#${b.user_id}`}
+                    </td>
                     <td style={{ fontSize: 13 }}>
                       {formatClinicDateTime(b.start_at)}
                     </td>
