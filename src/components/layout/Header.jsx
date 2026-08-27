@@ -12,10 +12,18 @@ export default function Header({ projects = [], currentProject = null }) {
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isHyperCore } = useAuth();
 
   const isAdmin = user?.roles?.some((r) => [1, 2, 3].includes(r.id));
-  const isOnAdminPage = location.pathname.startsWith("/admin");
+
+  // The platform operator does not build content. Hiding the project selector
+  // and "Add project" keeps the builder out of their reach entirely — the same
+  // reason HyperCoreRoute/TenantRoute keep them off those routes. Without this
+  // the selector would list EVERY project on the platform (the operator's
+  // /api/projects is unscoped) and link straight into the entry editor.
+  const showBuilderNav = !isHyperCore;
+
+  const brandTarget = isHyperCore ? "/platform" : "/dashboard";
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -48,14 +56,15 @@ export default function Header({ projects = [], currentProject = null }) {
       <Navbar className="app-header" variant="dark">
         <Container fluid className="px-3 d-flex justify-content-between">
           <div className="d-flex align-items-center gap-0">
-            <Navbar.Brand as={Link} to="/dashboard">
+            <Navbar.Brand as={Link} to={brandTarget}>
               <span className="brand-icon">
                 <i className="bi bi-grid-3x3-gap-fill text-white"></i>
               </span>
               Headless CMS
             </Navbar.Brand>
 
-            {/* Project Selector */}
+            {/* Project Selector — builders only */}
+            {showBuilderNav && (
             <div className="project-selector" ref={dropdownRef}>
               <button
                 className="project-selector-btn"
@@ -110,6 +119,16 @@ export default function Header({ projects = [], currentProject = null }) {
                 </div>
               )}
             </div>
+            )}
+
+            {/* Operators get a plain marker instead, so the header still says
+                where they are without offering a project to open. */}
+            {isHyperCore && (
+              <span className="header-operator-badge">
+                <i className="bi bi-shield-lock-fill"></i>
+                Platform operator
+              </span>
+            )}
           </div>
 
           {/* {isAdmin && (
@@ -168,14 +187,16 @@ export default function Header({ projects = [], currentProject = null }) {
           )}
 
           <div className="header-actions">
-            <Link
-              to="/ai-conversations"
-              className="header-btn"
-              title="Conversations"
-              style={{ textDecoration: "none" }}
-            >
-              <i className="bi bi-robot"></i>
-            </Link>
+            {showBuilderNav && (
+              <Link
+                to="/ai-conversations"
+                className="header-btn"
+                title="Conversations"
+                style={{ textDecoration: "none" }}
+              >
+                <i className="bi bi-robot"></i>
+              </Link>
+            )}
             {isAuthenticated && user && (
               <div className="position-relative" ref={userMenuRef}>
                 <button

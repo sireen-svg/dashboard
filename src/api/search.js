@@ -9,6 +9,11 @@ export const getPopularSearches = (params) =>
 export const runSearchDebug = (payload) =>
   apiClient.post('/admin/search/debug', payload);
 
+// Per-term IDF weights for the project's corpus — explains why one word
+// outranks another. Backed by search_term_stats.
+export const getSearchTermWeights = (payload) =>
+  apiClient.post('/admin/search/terms', payload);
+
 export const getSearchLogs = (params) =>
   apiClient.get('/admin/search/logs', { params });
 
@@ -17,9 +22,6 @@ export const getSearchProblems = () =>
 
 export const getSearchConfig = () =>
   apiClient.get('/admin/search/config');
-
-export const runSearchCompare = (payload) =>
-  apiClient.post('/admin/search/compare', payload);
 
 export const runAiRerun = (payload) =>
   apiClient.post('/admin/search/ai/re-run', payload);

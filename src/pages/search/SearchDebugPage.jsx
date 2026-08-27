@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Card, Spinner, Form, InputGroup } from 'react-bootstrap';
-import { runSearchDebug } from '../../api/search';
+import { runSearchDebug, getSearchTermWeights } from '../../api/search';
 
 /* ── Pipeline stage component ─────────────────────────── */
 function PipelineStage({ stage, isLast }) {
@@ -22,10 +22,7 @@ function PipelineStage({ stage, isLast }) {
             <span className="pipeline-title">{stage.title}</span>
             <span className={`pipeline-status-tag ${stage.status}`}>{stage.statusLabel}</span>
           </div>
-          <div className="d-flex align-items-center gap-2">
-            {stage.timeMs > 0 && <span className="pipeline-time">{stage.timeMs} ms</span>}
-            <i className={`bi bi-chevron-${open ? 'up' : 'down'}`} style={{ fontSize: 11, color: 'var(--fb-text-disabled)' }}></i>
-          </div>
+          <i className={`bi bi-chevron-${open ? 'up' : 'down'}`} style={{ fontSize: 11, color: 'var(--fb-text-disabled)' }}></i>
         </button>
         <div className="pipeline-summary">{stage.summary}</div>
 
@@ -39,13 +36,14 @@ function PipelineStage({ stage, isLast }) {
                 </div>
               ))}
             </div>
+
             {stage.results?.length > 0 && (
-              <div className="mt-3">
+              <div className="mt-3" style={{ overflowX: 'auto' }}>
                 <table className="table table-sm mb-0" style={{ fontSize: 12.5 }}>
                   <thead>
                     <tr>
-                      {['Title', 'Type', 'Score', 'Matched terms'].map(h => (
-                        <th key={h} style={{ fontSize: 11, color: 'var(--fb-text-secondary)', fontWeight: 600, padding: '6px 8px' }}>{h}</th>
+                      {['Title', 'Type', 'Final', 'BM25F', 'Phrase', 'Signals', 'Personal'].map(h => (
+                        <th key={h} style={{ fontSize: 11, color: 'var(--fb-text-secondary)', fontWeight: 600, padding: '6px 8px', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -53,17 +51,18 @@ function PipelineStage({ stage, isLast }) {
                     {stage.results.map(r => (
                       <tr key={r.entry_id}>
                         <td style={{ padding: '7px 8px', fontWeight: 500 }}>{r.title}</td>
-                        <td style={{ padding: '7px 8px', fontFamily: 'monospace', color: 'var(--fb-text-secondary)' }}>{r.data_type}</td>
+                        <td style={{ padding: '7px 8px', fontFamily: 'monospace', color: 'var(--fb-text-secondary)' }}>{r.data_type_slug}</td>
                         <td style={{ padding: '7px 8px' }}>
-                          <div style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--fb-blue)' }}>{r.score?.toFixed(2)}</div>
-                          <div className="score-track"><div className="score-fill" style={{ width: `${(r.score ?? 0) * 100}%` }} /></div>
-                        </td>
-                        <td style={{ padding: '7px 8px' }}>
-                          <div className="d-flex gap-1 flex-wrap">
-                            {r.matched_terms?.map(t => (
-                              <span key={t} style={{ fontSize: 11, padding: '1px 6px', borderRadius: 4, background: 'var(--fb-blue-light)', color: 'var(--fb-blue)', fontFamily: 'monospace' }}>{t}</span>
-                            ))}
+                          <div style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--fb-blue)' }}>{r.score?.final?.toFixed(2)}</div>
+                          <div className="score-track">
+                            <div className="score-fill" style={{ width: `${Math.min(100, ((r.score?.final ?? 0) / (stage.topScore || 1)) * 100)}%` }} />
                           </div>
+                        </td>
+                        <td style={{ padding: '7px 8px', fontFamily: 'monospace' }}>{r.score?.bm25f?.toFixed(2)}</td>
+                        <td style={{ padding: '7px 8px', fontFamily: 'monospace' }}>{r.score?.phrase_bonus?.toFixed(2)}</td>
+                        <td style={{ padding: '7px 8px', fontFamily: 'monospace' }}>{r.score?.signals?.toFixed(2)}</td>
+                        <td style={{ padding: '7px 8px', fontFamily: 'monospace', color: (r.score?.personalization_multiplier ?? 1) > 1 ? 'var(--fb-green)' : 'var(--fb-text-disabled)' }}>
+                          ×{r.score?.personalization_multiplier?.toFixed(2)}
                         </td>
                       </tr>
                     ))}
@@ -78,59 +77,199 @@ function PipelineStage({ stage, isLast }) {
   );
 }
 
+/**
+ * Maps the /admin/search/debug response onto the pipeline UI.
+ *
+ * The stages mirror the engine's real execution order. Stages that the
+ * engine did not run are omitted rather than rendered as "skipped" — a
+ * permanently-skipped row teaches the reader nothing and pushes the
+ * stages that actually decided the outcome further down the page.
+ */
 function buildStages(r) {
-  return [
+  const text = r.text_pipeline ?? {};
+  const plan = r.plan ?? {};
+  const retrieval = r.retrieval ?? {};
+  const rescue = r.rescue ?? {};
+  const refiner = r.refiner ?? {};
+  const results = r.results ?? [];
+  const topScore = results[0]?.score?.final ?? 1;
+
+  const scripts = Object.entries(text.script_profile ?? {})
+    .map(([k, v]) => `${k} ${Math.round(v * 100)}%`)
+    .join(', ');
+
+  const filters = [...(retrieval.hard_filters ?? []), ...(retrieval.soft_filters ?? [])];
+  const describeFilter = f =>
+    `${f.key} ${f.operator} ${f.value}${f.value_to ? `..${f.value_to}` : ''}`;
+
+  const stages = [
     {
-      id: 'norm', title: 'Query normalization', status: 'ok', statusLabel: 'done',
-      timeMs: r.normalization.time_ms,
-      summary: `"${r.normalization.original}"  →  "${r.normalization.normalized}"`,
-      detail: { language: r.normalization.input_language, 'detected arabic': r.normalization.detected_arabic ? 'yes' : 'no', 'is natural language': r.normalization.is_natural_language ? 'yes' : 'no', 'word count': `${r.normalization.word_count_before} → ${r.normalization.word_count_after}`, 'excluded terms': r.normalization.exclude_terms.join(', ') || '—' },
+      id: 'text',
+      title: 'Text normalisation',
+      status: 'ok',
+      statusLabel: text.dominant_script ?? 'done',
+      summary: `"${text.raw}"  →  "${text.folded}"`,
+      detail: {
+        'script profile': scripts || '—',
+        'mixed scripts': text.is_mixed ? 'yes' : 'no',
+        'index targeted': text.needs_ngram ? 'ft_ngram (n-gram parser)' : 'ft_fold (default parser)',
+        tokens: (text.tokens ?? []).join(' · ') || '—',
+      },
     },
     {
-      id: 'pre', title: 'Pre-AI analysis', status: r.pre_ai_analysis.is_gibberish ? 'empty' : 'ok',
-      statusLabel: r.pre_ai_analysis.is_gibberish ? 'gibberish detected' : 'done',
-      timeMs: 0,
-      summary: `Vowel ratio ${r.pre_ai_analysis.vowel_ratio} · ${r.pre_ai_analysis.token_count} token(s)${r.pre_ai_analysis.typo_signals.length ? ` · signals: ${r.pre_ai_analysis.typo_signals.join(', ')}` : ''}`,
-      detail: { 'is gibberish': r.pre_ai_analysis.is_gibberish ? 'yes' : 'no', 'has negation': r.pre_ai_analysis.has_negation ? 'yes' : 'no', 'typo signals': r.pre_ai_analysis.typo_signals.join(', ') || '—', 'token count': r.pre_ai_analysis.token_count },
+      id: 'plan',
+      title: 'Query understanding',
+      status: (plan.terms ?? []).length > 0 ? 'ok' : 'empty',
+      statusLabel: `${(plan.terms ?? []).length} term(s)`,
+      summary: `terms: ${(plan.terms ?? []).join(', ') || '—'}`
+        + (plan.must_not?.length ? `   ·   excluded: ${plan.must_not.join(', ')}` : ''),
+      detail: {
+        terms: (plan.terms ?? []).join(', ') || '—',
+        expansions: (plan.expansions ?? []).join(', ') || '—',
+        'must not': (plan.must_not ?? []).join(', ') || '—',
+        phrase: (plan.phrases ?? []).join(' | ') || '—',
+        intent: `${plan.intent?.intent ?? 'general'} @ ${plan.intent?.confidence ?? 0}`,
+        'natural language': plan.is_natural_language ? 'yes' : 'no',
+      },
     },
     {
-      id: 'initial', title: 'Initial search', status: r.initial_search.total > 0 ? 'ok' : 'empty',
-      statusLabel: `${r.initial_search.total} result${r.initial_search.total !== 1 ? 's' : ''}`,
-      timeMs: r.initial_search.time_ms,
-      summary: `Boolean query: ${r.initial_search.boolean_query}`,
-      detail: { results: r.initial_search.total, 'boolean query': r.initial_search.boolean_query },
-      results: r.initial_search.top_results ?? [],
+      id: 'filters',
+      title: 'Structured conditions',
+      status: filters.length > 0 ? 'ok' : 'skip',
+      statusLabel: filters.length
+        ? `${retrieval.hard_filters?.length ?? 0} filter · ${retrieval.soft_filters?.length ?? 0} boost`
+        : 'none detected',
+      summary: filters.length
+        ? filters.map(f => `${describeFilter(f)} (${f.hard ? 'filters' : 'boosts'} @ ${f.confidence})`).join('   ·   ')
+        : 'No year / price / attribute condition in this query.',
+      detail: filters.length
+        ? Object.fromEntries(filters.map(f => [
+            describeFilter(f),
+            `confidence ${f.confidence} — ${f.hard ? 'excludes non-matching entries' : 'boosts matches, excludes nothing'}`,
+          ]))
+        : { status: 'none detected' },
     },
     {
-      id: 'kb', title: 'Keyboard layout correction',
-      status: !r.keyboard_fix.triggered ? 'skip' : r.keyboard_fix.decision === 'accepted' ? 'ok' : 'skip',
-      statusLabel: !r.keyboard_fix.triggered ? 'skipped' : r.keyboard_fix.decision,
-      timeMs: r.keyboard_fix.time_ms,
-      summary: !r.keyboard_fix.triggered ? 'Not triggered — initial results were sufficient.' : `"${r.keyboard_fix.fixed_query}" · confidence ${r.keyboard_fix.confidence} · direction: ${r.keyboard_fix.direction}`,
-      detail: r.keyboard_fix.triggered
-        ? { 'fixed query': r.keyboard_fix.fixed_query, direction: r.keyboard_fix.direction, confidence: r.keyboard_fix.confidence, decision: r.keyboard_fix.decision, 'results after': r.keyboard_fix.total_after }
-        : { status: 'not triggered' },
-    },
-    {
-      id: 'ai', title: 'AI correction', status: r.ai.triggered ? 'ok' : 'skip',
-      statusLabel: r.ai.triggered ? 'done' : 'skipped',
-      timeMs: r.ai.time_ms,
-      summary: r.ai.triggered
-        ? `Corrected to "${r.ai.corrected}" via ${r.ai.source} · confidence ${r.ai.confidence} · ${r.ai.total_after} results`
-        : 'Not triggered.',
-      detail: r.ai.triggered
-        ? { corrected: r.ai.corrected, source: r.ai.source, confidence: r.ai.confidence, intent: r.ai.intent, 'expanded terms': r.ai.expanded.join(', ') || '—', 'results after': r.ai.total_after }
-        : { status: 'not triggered' },
-    },
-    {
-      id: 'final', title: 'Final results', status: r.final.total > 0 ? 'ok' : 'empty',
-      statusLabel: `${r.final.total} result${r.final.total !== 1 ? 's' : ''} via ${r.final.source}`,
-      timeMs: 0,
-      summary: `Source: ${r.final.source}`,
-      detail: { total: r.final.total, source: r.final.source },
-      results: r.final.results ?? [],
+      id: 'retrieval',
+      title: 'Retrieval',
+      status: retrieval.total_matches > 0 ? 'ok' : 'empty',
+      statusLabel: `${retrieval.total_matches ?? 0} match(es)`,
+      summary: `${retrieval.query_actually_used ?? '—'}   →   ${retrieval.match_target ?? ''}`,
+      detail: {
+        'queries tried': (retrieval.boolean_queries ?? []).join('     |     ') || '—',
+        'step used': retrieval.relaxation_step_used === 0
+          ? '0 — strict (every term required)'
+          : retrieval.relaxation_step_used > 0
+            ? `${retrieval.relaxation_step_used} — relaxed (any term)`
+            : 'none matched',
+        'match target': retrieval.match_target ?? '—',
+        'candidates fetched': retrieval.candidates_fetched ?? 0,
+        'window size': retrieval.window?.size ?? '—',
+        're-ranked': retrieval.window?.reranked ? 'yes' : 'no — deep paging, DB order kept',
+      },
     },
   ];
+
+  // Rescue only ran if retrieval actually came up empty.
+  if (rescue.attempted) {
+    stages.push({
+      id: 'rescue',
+      title: 'Local rescue',
+      status: rescue.accepted ? 'ok' : 'empty',
+      statusLabel: rescue.accepted ?? 'nothing recovered',
+      summary: rescue.accepted
+        ? `Recovered via ${rescue.accepted} correction — no network call needed.`
+        : 'Keyboard-layout and spelling correction both failed to find results.',
+      detail: (rescue.tried ?? []).length
+        ? Object.fromEntries(rescue.tried.map((t, i) => [
+            `${i + 1}. ${t.strategy}`,
+            `${t.terms.join(', ')}   →   ${t.total} result(s)`,
+          ]))
+        : { status: 'no candidate produced' },
+    });
+  }
+
+  if (refiner.used) {
+    stages.push({
+      id: 'ai',
+      title: 'AI fallback',
+      status: 'ok',
+      statusLabel: refiner.source ?? 'used',
+      summary: `Local pipeline and rescue both returned nothing — the model reinterpreted the query as: ${(plan.terms ?? []).join(', ')}`,
+      detail: {
+        source: refiner.source ?? '—',
+        'reinterpreted terms': (plan.terms ?? []).join(', ') || '—',
+        note: 'Structured conditions stay local — the model may only suggest words.',
+      },
+    });
+  }
+
+  stages.push({
+    id: 'final',
+    title: 'Ranked results',
+    status: results.length > 0 ? 'ok' : 'empty',
+    statusLabel: `${retrieval.total_matches ?? 0} total · showing ${results.length}`,
+    summary: 'final = (BM25F + phrase bonus + signals) × personalisation',
+    detail: {
+      'plan source': plan.source ?? 'local',
+      'total matches': retrieval.total_matches ?? 0,
+    },
+    results,
+    topScore,
+  });
+
+  return stages;
+}
+
+/* ── Term weight panel ────────────────────────────────── */
+function TermWeights({ data }) {
+  if (!data?.terms?.length) return null;
+
+  const max = Math.max(...data.terms.map(t => t.idf), 1);
+
+  return (
+    <Card className="mb-3">
+      <Card.Body className="p-4">
+        <div className="d-flex align-items-center gap-2 mb-1">
+          <i className="bi bi-bar-chart-steps" style={{ color: 'var(--fb-blue)', fontSize: 18 }}></i>
+          <h6 className="fw-medium mb-0" style={{ fontSize: 15 }}>Term weights (IDF)</h6>
+        </div>
+        <p style={{ fontSize: 12.5, color: 'var(--fb-text-secondary)', marginBottom: 16 }}>
+          How rare each word is in this project&apos;s {data.corpus?.document_count ?? 0} indexed documents.
+          Rarer words carry more weight — this is why one word outranks another.
+        </p>
+
+        <table className="table table-sm mb-0" style={{ fontSize: 12.5 }}>
+          <thead>
+            <tr>
+              {['Term', 'Appears in', 'IDF weight', ''].map(h => (
+                <th key={h} style={{ fontSize: 11, color: 'var(--fb-text-secondary)', fontWeight: 600, padding: '6px 8px' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.terms.map(t => (
+              <tr key={t.term}>
+                <td style={{ padding: '7px 8px', fontFamily: 'monospace', fontWeight: 500 }}>
+                  {t.term}
+                  {t.is_expansion && (
+                    <span style={{ fontSize: 10, marginLeft: 6, padding: '1px 5px', borderRadius: 4, background: 'var(--fb-body-bg)', color: 'var(--fb-text-disabled)' }}>
+                      expansion
+                    </span>
+                  )}
+                </td>
+                <td style={{ padding: '7px 8px', color: 'var(--fb-text-secondary)' }}>{t.document_frequency} doc(s)</td>
+                <td style={{ padding: '7px 8px', fontFamily: 'monospace', fontWeight: 600, color: 'var(--fb-blue)' }}>{t.idf?.toFixed(3)}</td>
+                <td style={{ padding: '7px 8px', width: '38%' }}>
+                  <div className="score-track"><div className="score-fill" style={{ width: `${(t.idf / max) * 100}%` }} /></div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card.Body>
+    </Card>
+  );
 }
 
 export default function SearchDebugPage() {
@@ -139,22 +278,28 @@ export default function SearchDebugPage() {
   const [lang, setLang]       = useState('en');
   const [loading, setLoading] = useState(false);
   const [result, setResult]   = useState(null);
+  const [weights, setWeights] = useState(null);
   const [error, setError]     = useState(null);
   const [showRaw, setShowRaw] = useState(false);
 
   async function handleRun(e) {
     e.preventDefault();
     if (!keyword.trim()) return;
-    setLoading(true); setError(null); setResult(null);
+    setLoading(true); setError(null); setResult(null); setWeights(null);
     try {
-      const res = await runSearchDebug({ keyword: keyword.trim(), language: lang, project_id: project.id });
-      setResult(res.data?.data ?? res.data);
+      const payload = { keyword: keyword.trim(), language: lang, project_id: project.id };
+      const [debugRes, weightRes] = await Promise.all([
+        runSearchDebug(payload),
+        getSearchTermWeights(payload).catch(() => null),
+      ]);
+      setResult(debugRes.data?.data ?? debugRes.data);
+      if (weightRes) setWeights(weightRes.data?.data ?? weightRes.data);
     } catch (e) {
       setError(e.response?.data?.message || 'Debug request failed.');
     } finally { setLoading(false); }
   }
 
-  const perfColor = ms => ms < 1000 ? 'var(--fb-green)' : ms < 3000 ? 'var(--fb-orange)' : 'var(--fb-red)';
+  const perfColor = ms => ms < 200 ? 'var(--fb-green)' : ms < 1000 ? 'var(--fb-orange)' : 'var(--fb-red)';
 
   return (
     <div>
@@ -192,7 +337,7 @@ export default function SearchDebugPage() {
             </div>
             <div className="d-flex align-items-center gap-2 flex-wrap">
               <span style={{ fontSize: 12, color: 'var(--fb-text-disabled)' }}>Try:</span>
-              {['iphoen', 'buy iphone', 'هحاخىث', 'doker tutorail'].map(ex => (
+              {['smartphoen', 'هحاخىث', 'iphone released in 2020', 'laptop under 800', 'ما بدي ايفون 14'].map(ex => (
                 <button key={ex} type="button" className="btn btn-link p-0 btn-sm"
                   style={{ fontSize: 12, color: 'var(--fb-blue)' }}
                   onClick={() => setKeyword(ex)}>{ex}</button>
@@ -210,10 +355,13 @@ export default function SearchDebugPage() {
           <div className="search-perf-bar mb-4">
             {[
               { label: 'Execution time', value: `${result.execution_time_ms} ms`, color: perfColor(result.execution_time_ms) },
-              { label: 'Final source',   value: result.final?.source ?? '—' },
-              { label: 'Total results',  value: result.final?.total ?? 0, color: result.final?.total > 0 ? 'var(--fb-green)' : 'var(--fb-red)' },
-              { label: 'Correction',     value: result.ai?.triggered ? `${result.normalization?.original} → ${result.ai?.corrected}` : 'None' },
-              { label: 'AI source',      value: result.ai?.triggered ? result.ai.source : '—' },
+              { label: 'Total results',  value: result.retrieval?.total_matches ?? 0,
+                color: (result.retrieval?.total_matches ?? 0) > 0 ? 'var(--fb-green)' : 'var(--fb-red)' },
+              { label: 'Plan source',    value: result.plan?.source ?? 'local' },
+              { label: 'Index used',     value: result.plan?.needs_ngram ? 'ft_ngram' : 'ft_fold' },
+              { label: 'Rescue',         value: result.rescue?.accepted ?? (result.rescue?.attempted ? 'failed' : 'not needed'),
+                color: result.rescue?.accepted ? 'var(--fb-green)' : undefined },
+              { label: 'Conditions',     value: `${result.retrieval?.hard_filters?.length ?? 0} filter / ${result.retrieval?.soft_filters?.length ?? 0} boost` },
             ].map(s => (
               <div key={s.label} className="search-perf-item">
                 <div className="search-perf-label">{s.label}</div>
@@ -240,6 +388,8 @@ export default function SearchDebugPage() {
               ))}
             </Card.Body>
           </Card>
+
+          <TermWeights data={weights} />
 
           {/* Raw JSON */}
           {showRaw && (

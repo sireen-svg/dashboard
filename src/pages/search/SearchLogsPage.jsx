@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { Card, Spinner, Table, Row, Col, Form, InputGroup } from 'react-bootstrap';
 import { getSearchLogs } from '../../api/search';
 
@@ -12,7 +11,6 @@ function fmt(val) {
 }
 
 export default function SearchLogsPage() {
-  const { project } = useOutletContext();
   const [loading, setLoading] = useState(true);
   const [data, setData]       = useState(null);
   const [error, setError]     = useState(null);
@@ -93,9 +91,11 @@ export default function SearchLogsPage() {
             </Form.Select>
             <Form.Select size="sm" value={intent} onChange={e => { setIntent(e.target.value); setPage(1); }} style={{ width: 165 }}>
               <option value="">All intents</option>
-              <option value="transactional">Transactional</option>
-              <option value="informational">Informational</option>
-              <option value="service">Service</option>
+              <option value="buy">Buy</option>
+              <option value="repair">Repair / service</option>
+              <option value="compare">Compare</option>
+              <option value="learn">Learn</option>
+              <option value="general">General</option>
             </Form.Select>
             <Form.Select size="sm" value={lang} onChange={e => { setLang(e.target.value); setPage(1); }} style={{ width: 130 }}>
               <option value="">All languages</option>

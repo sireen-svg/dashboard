@@ -168,8 +168,16 @@ export default function Sidebar({
 
   const searchDevLinks = [
     { to: `/projects/${projectSlug}/search/config`,   label: 'Config',     icon: 'bi-sliders' },
-    { to: `/projects/${projectSlug}/search/compare`,  label: 'A/B compare', icon: 'bi-layout-split' },
     { to: `/projects/${projectSlug}/search/ai-rerun`, label: 'AI re-run',  icon: 'bi-cpu' },
+  ];
+
+  // Subscriptions — always visible, like Search. Every project can sell plans,
+  // so this isn't gated behind a module flag.
+  const subscriptionLinks = [
+    { to: `/projects/${projectSlug}/subscriptions/plans`,          label: 'Plans',          icon: 'bi-card-list' },
+    { to: `/projects/${projectSlug}/subscriptions/subscribers`,     label: 'Subscribers',    icon: 'bi-people' },
+    { to: `/projects/${projectSlug}/subscriptions/feature-rules`,   label: 'Feature rules',  icon: 'bi-diagram-2' },
+    { to: `/projects/${projectSlug}/subscriptions/content-access`,  label: 'Content access', icon: 'bi-shield-lock' },
   ];
 
   // Highlight a data-type child link based on the ?type= query string when on the list page.
@@ -278,6 +286,18 @@ export default function Sidebar({
           icon="bi-terminal"
           basePath={`/projects/${projectSlug}/search/config`}
           links={searchDevLinks}
+        />
+      </Nav>
+
+      {/* Subscriptions — permanent section, always rendered for every project. */}
+      <div className="sidebar-divider"></div>
+      <div className="sidebar-section-subs">Subscriptions</div>
+      <Nav className="flex-column subs-nav">
+        <CollapsibleNavGroup
+          label="Subscriptions"
+          icon="bi-credit-card"
+          basePath={`/projects/${projectSlug}/subscriptions`}
+          links={subscriptionLinks}
         />
       </Nav>
 
