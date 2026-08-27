@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Form, Button, Badge, Row, Col, Spinner } from 'react-bootstrap';
 import { MODULE_KEYS, MODULE_LABELS } from '../lib/constants';
-import { LONG_TEXT_VALIDATION_RULE, slugify, getApiError } from '../lib/utils';
+import { defaultValidationRules, slugify, getApiError } from '../lib/utils';
 import { getTablesForModules } from '../data/moduleTemplates';
 import { CLINIC_RELATIONS } from '../data/clinicTemplates';
 import { createProject, createDataType, createField } from '../api/cms';
@@ -113,7 +113,7 @@ export default function NewProjectWizard() {
               required: col.isRequired || false,
               translatable: col.translatable || false,
               validation_rules: col.validationRules
-                || (col.fieldType === 'text' ? [LONG_TEXT_VALIDATION_RULE] : []),
+                || defaultValidationRules(col.fieldType),
               settings: col.settings || {},
               sort_order: i,
             };
@@ -231,14 +231,6 @@ export default function NewProjectWizard() {
                 <Form.Group className="mb-3">
                   <Form.Label>Project preset</Form.Label>
                   <div className="d-grid gap-2">
-                    <button
-                      type="button"
-                      className={`module-card text-start ${projectPreset === 'clinic' ? 'selected' : ''}`}
-                      onClick={() => selectPreset('clinic')}
-                    >
-                      <div className="module-name"><i className="bi bi-heart-pulse me-2"></i>Clinic website</div>
-                      <p className="module-desc mb-0">Home, doctors, services, health posts, testimonials, FAQs and site settings.</p>
-                    </button>
                     <button
                       type="button"
                       className={`module-card text-start ${projectPreset === 'standard' ? 'selected' : ''}`}

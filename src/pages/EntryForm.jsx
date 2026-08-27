@@ -15,7 +15,7 @@ import {
 } from '../api/cms';
 import apiClient from '../api/client';
 import { showToast } from '../components/Toast';
-import { getApiError, isIconField, isMultilineTextField, slugify } from '../lib/utils';
+import { getApiError, isDateField, isIconField, isMultilineTextField, slugify } from '../lib/utils';
 // The picker pulls in lucide's ~434 kB name->loader manifest, and most entry forms have
 // no icon field at all, so it is fetched only when one is actually rendered.
 const IconPicker = lazy(() => import('../components/IconPicker'));
@@ -520,6 +520,19 @@ export default function EntryForm() {
             onChange={(iconName) => handleValueChange(field.id, lang, iconName)}
           />
         </Suspense>
+      );
+    }
+
+    // Dates are stored on a `text` field (the CMS has no date type), so the date
+    // editor is restored from the marker rule rather than from field.type.
+    if (isDateField(field)) {
+      return (
+        <Form.Control
+          key={key}
+          type="date"
+          value={value}
+          onChange={(e) => handleValueChange(field.id, lang, e.target.value)}
+        />
       );
     }
 

@@ -19,7 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { FIELD_TYPES } from '../lib/constants';
 import {
-  LONG_TEXT_VALIDATION_RULE,
+  defaultValidationRules,
   toBackendFieldType,
   toFrontendFieldType,
   getApiError,
@@ -180,7 +180,7 @@ export default function TableEditor() {
       type: backendType,
       required: newCol.isRequired,
       translatable: newCol.translatable,
-      validation_rules: newCol.fieldType === 'text' ? [LONG_TEXT_VALIDATION_RULE] : [],
+      validation_rules: defaultValidationRules(newCol.fieldType),
       settings: {},
       sort_order: fields.length,
     };

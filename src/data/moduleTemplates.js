@@ -27,7 +27,6 @@ function table(name, displayName, columns) {
 const ecommerceTemplates = () => [
   table('products', 'Products', [
     col('name', 'Name', 'string', { isRequired: true }),
-    col('slug', 'Slug', 'string', { isRequired: true, isUnique: true }),
     col('description', 'Description', 'text'),
     col('price', 'Price', 'number', { isRequired: true }),
     col('sale_price', 'Sale Price', 'number'),
@@ -37,10 +36,8 @@ const ecommerceTemplates = () => [
   ]),
   table('categories', 'Categories', [
     col('name', 'Name', 'string', { isRequired: true }),
-    col('slug', 'Slug', 'string', { isRequired: true, isUnique: true }),
     col('description', 'Description', 'text'),
     col('image', 'Image', 'media'),
-    col('parent_id', 'Parent ID', 'string'),
   ]),
   table('orders', 'Orders', [
     col('order_number', 'Order Number', 'string', { isRequired: true, isUnique: true }),
@@ -64,7 +61,6 @@ const ecommerceTemplates = () => [
 const cmsTemplates = () => [
   table('pages', 'Pages', [
     col('title', 'Title', 'string', { isRequired: true }),
-    col('slug', 'Slug', 'string', { isRequired: true, isUnique: true }),
     col('content', 'Content', 'text'),
     col('status', 'Status', 'enum', { isRequired: true, enumValues: ['published', 'draft'] }),
     col('meta_title', 'Meta Title', 'string'),
@@ -72,7 +68,6 @@ const cmsTemplates = () => [
   ]),
   table('posts', 'Posts', [
     col('title', 'Title', 'string', { isRequired: true }),
-    col('slug', 'Slug', 'string', { isRequired: true, isUnique: true }),
     col('content', 'Content', 'text'),
     col('excerpt', 'Excerpt', 'text'),
     col('status', 'Status', 'enum', { isRequired: true, enumValues: ['published', 'draft'] }),
@@ -88,7 +83,6 @@ const cmsTemplates = () => [
   ]),
   table('tags', 'Tags', [
     col('name', 'Name', 'string', { isRequired: true }),
-    col('slug', 'Slug', 'string', { isRequired: true, isUnique: true }),
   ]),
 ];
 

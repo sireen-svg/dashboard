@@ -19,8 +19,10 @@ const FRONTEND_TO_BACKEND = {
   text: "text",
   number: "number",
   boolean: "boolean",
-  date: "date",
-  datetime: "date",
+  // The CMS has no date type — FieldTypeFactory supports only text/number/boolean/
+  // select/json/relation/file. Dates ride on `text` as ISO strings.
+  date: "text",
+  datetime: "text",
   email: "text",
   url: "text",
   media: "file",
@@ -49,6 +51,25 @@ export function toBackendFieldType(frontendType) {
 
 export const LONG_TEXT_VALIDATION_RULE = "max:65535";
 
+// Both a real constraint and the marker that restores the date editor, mirroring the
+// way LONG_TEXT_VALIDATION_RULE marks multiline. Safe as a marker because rules are
+// only checked by name when the field is created — they are never applied to entry
+// values — and settings.* cannot be used here, since TextFieldStrategy keeps only
+// placeholder/default.
+export const DATE_VALIDATION_RULE = "regex:/^\\d{4}-\\d{2}-\\d{2}$/";
+
+export function isDateField(field) {
+  return field?.validation_rules?.includes(DATE_VALIDATION_RULE) ?? false;
+}
+
+// The rules a newly created field starts with, keyed by the editor type the user picked.
+export function defaultValidationRules(frontendType) {
+  if (frontendType === "text") return [LONG_TEXT_VALIDATION_RULE];
+  if (frontendType === "date" || frontendType === "datetime") return [DATE_VALIDATION_RULE];
+
+  return [];
+}
+
 export function isMultilineTextField(field) {
   if (!field) return false;
 
@@ -76,6 +97,7 @@ export function isIconField(field) {
 
 export function toFrontendFieldType(backendType, field) {
   if (backendType === "select" && isIconField(field)) return "icon";
+  if (backendType === "text" && isDateField(field)) return "date";
   if (backendType === "text" && isMultilineTextField(field)) return "text";
   return BACKEND_TO_FRONTEND[backendType] || "string";
 }

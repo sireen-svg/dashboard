@@ -30,6 +30,16 @@ export const changePassword = (current_password, new_password, new_password_conf
     new_password_confirmation,
   });
 
+// --- Roles & permissions catalog ---
+// Both are public on the auth service (no JWT) — see Auth-Service routes/api.php.
+// Neither returns the role->permission mapping; that still has to come from
+// getAllUsers(), whose roles are returned with their `permessions` relation.
+export const getAllRoles = () =>
+  authClient.get('/get-all-roles');
+
+export const getAllPermissions = () =>
+  authClient.get('/get-all-permissions');
+
 // --- Admin: User & Role Management (super_admin / admin) ---
 export const getAllUsers = () =>
   authClient.get('/get-all-users');
